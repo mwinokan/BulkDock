@@ -1,14 +1,13 @@
-
 VARIABLES = [
-	"DIR_INPUT",
-	"DIR_TARGET",
-	"DIR_SCRATCH",
-	"DIR_OUTPUT",
+    "DIR_INPUT",
+    "DIR_TARGET",
+    "DIR_SCRATCH",
+    "DIR_OUTPUT",
 ]
 
 DEFAULTS = {
-	"DIR_INPUT":"../INPUTS",
-	"DIR_TARGET":"../TARGETS",
-	"DIR_SCRATCH":"../SCRATCH",
-	"DIR_OUTPUT":"../OUTPUTS",
+    "DIR_INPUT": "../INPUTS",
+    "DIR_TARGET": "../TARGETS",
+    "DIR_SCRATCH": "../SCRATCH",
+    "DIR_OUTPUT": "../OUTPUTS",
 }

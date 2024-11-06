@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from pathlib import Path
 from pony.orm import *
@@ -7,20 +6,21 @@ from pony.orm import *
 
 db = Database()
 
+
 class Batch(db.Entity):
     id = PrimaryKey(int, auto=True)
     input_file = Required(str)
-    target = Required('Target')
-    batch_status = Required('BatchStatus')
+    target = Required("Target")
+    batch_status = Required("BatchStatus")
     request = Required(datetime)
     user = Required(str)
-    jobs = Set('Job')
+    jobs = Set("Job")
 
 
 class Target(db.Entity):
     id = PrimaryKey(int, auto=True)
     batches = Set(Batch)
-    ligands = Set('Ligand')
+    ligands = Set("Ligand")
 
 
 class Ligand(db.Entity):
@@ -32,17 +32,17 @@ class Ligand(db.Entity):
 
 class Placement(db.Entity):
     id = PrimaryKey(int, auto=True)
-    job = Required('Job')
+    job = Required("Job")
     method = Optional(str)
     parameters = Optional(Json)
     pose = Optional(int)
-    placement_status = Required('PlacementStatus')
+    placement_status = Required("PlacementStatus")
 
 
 class Job(db.Entity):
     id = PrimaryKey(int, auto=True)
     batch = Required(Batch)
-    job_status = Required('JobStatus')
+    job_status = Required("JobStatus")
     placements = Set(Placement)
 
 
@@ -61,6 +61,7 @@ class JobStatus(Status):
 class PlacementStatus(Status):
     placements = Set(Placement)
 
-db.bind(provider='sqlite', filename='../bulkdock.sqlite', create_db=True)
+
+db.bind(provider="sqlite", filename="../bulkdock.sqlite", create_db=True)
 
 db.generate_mapping(create_tables=True)
