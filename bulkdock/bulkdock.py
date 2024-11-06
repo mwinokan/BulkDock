@@ -109,7 +109,13 @@ class BulkDock:
 
     ### PLACEMENTS
 
-    def place(self, target: str, infile: str, debug: bool = False):
+    def place(
+        self,
+        target: str,
+        infile: str,
+        debug: bool = False,
+        create_inspiration_sdf: bool = True,
+    ):
 
         mrich.h2("BulkDock.place")
         mrich.var("target", target)
@@ -137,7 +143,7 @@ class BulkDock:
             return None
 
         data = parse_input_csv(
-            animal=animal, 
+            animal=animal,
             file=csv_path,
             debug=debug,
         )
@@ -146,22 +152,72 @@ class BulkDock:
 
         assert SLURM_JOB_ID
 
-        job_scratch_dir = self.create_scratch_subdir(SLURM_JOB_ID)
+        job_scratch_dir = self.get_scratch_subdir(SLURM_JOB_ID)
 
-        mrich.debug("job_scratch_dir", job_scratch_dir)
+        mrich.var("job_scratch_dir", job_scratch_dir)
 
-        for d in data:
+        pose_ids = set()
 
-            mrich.debug(d)
+        for i, d in enumerate(data):
 
-            result = fragmenstein_place(
+            mrich.h2(f"Placement task {i+1}/{len(data)}")
+
+            compound = d["compound"]
+            reference = d["reference"]
+            inspirations = d["inspirations"]
+
+            mrich.var("compound", compound)
+            mrich.var("reference", reference)
+            mrich.var("inspirations", inspirations.aliases)
+
+            # create ref hits file
+            if create_inspiration_sdf:
+                ref_hits_path = self.create_inspiration_sdf(target, inspirations)
+                mrich.var("ref_hits_path", ref_hits_path)
+
+            # create protein file
+            protein_path = reference.path.replace(".pdb", "_apo-desolv.pdb")
+            mrich.var("protein_path", protein_path)
+
+            pose_id = fragmenstein_place(
+                animal=animal,
                 scratch_dir=job_scratch_dir,
-                smiles=smiles,
+                compound=compound,
+                reference=reference,
+                inspirations=inspirations,
                 protein_path=protein_path,
-                ref_hits_path=ref_hits_path,
             )
 
-        raise NotImplementedError
+            if pose_id:
+                pose_ids.add(pose_id)
+
+        mrich.debug("Committing changes...")
+        animal.db.commit()
+
+        if pose_ids:
+
+            outname = infile.replace(".csv", f"_{SLURM_JOB_ID}.sdf")
+            outfile = self.get_outfile_path(outname)
+
+            poses = animal.poses[pose_ids]
+            poses.write_sdf(outfile, name_col="id")
+
+            mrich.h1(f"Determined {len(poses)} Poses\n{outfile}")
+            return outfile
+
+        else:
+            mrich.error(f"Determined 0 Poses")
+            return None
+
+    def create_inspiration_sdf(self, target: str, inspirations: "PoseSet") -> "Path":
+
+        subdir = self.get_scratch_subdir(f"{target}_inspiration_sdfs")
+        sdf_path = subdir / Path("_".join(sorted(inspirations.aliases)) + ".sdf")
+
+        if not sdf_path.exists():
+            inspirations.write_sdf(sdf_path)
+
+        return sdf_path
 
     ### CONFIG
 
@@ -220,6 +276,15 @@ class BulkDock:
             raise FileNotFoundError
 
         return infile_path
+
+    def get_outfile_path(self, outfile: str) -> Path:
+        assert (
+            self.output_dir.exists()
+        ), "Output directory does not exist. Run 'create-directories' command"
+
+        outfile_path = self.output_dir / outfile
+
+        return outfile_path
 
     def get_animal_path(self, target: str) -> Path:
 
@@ -282,8 +347,7 @@ class BulkDock:
 
         mrich.success("Done")
 
-
-    def create_scratch_subdir(self, subdir_name):
+    def get_scratch_subdir(self, subdir_name):
         subdir = self.scratch_dir / subdir_name
-        subdir.mkdir()
+        subdir.mkdir(exist_ok=True)
         return subdir

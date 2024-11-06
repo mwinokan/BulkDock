@@ -3,7 +3,7 @@ import mrich
 
 def parse_input_csv(animal: "HIPPO", file: "Path", debug: bool = False) -> list[dict]:
     """
-    Parse a BulkDock input CSV to prepare for an ensemble docking run where a compound is placed against each protein conformation from its inspirations. 
+    Parse a BulkDock input CSV to prepare for an ensemble docking run where a compound is placed against each protein conformation from its inspirations.
 
     :param animal: `HIPPO` object to work within
     :param file: `Path` object to the input CSV
@@ -44,11 +44,13 @@ def parse_input_csv(animal: "HIPPO", file: "Path", debug: bool = False) -> list[
         for pose in inspiration_poses:
 
             # all info needed for placement
-            data.append(dict(
-                compound=compound,
-                reference=pose,
-                inspirations=inspiration_poses,
-            ))
+            data.append(
+                dict(
+                    compound=compound,
+                    reference=pose,
+                    inspirations=inspiration_poses,
+                )
+            )
 
             # debug output
             if debug:
@@ -61,6 +63,15 @@ def parse_input_csv(animal: "HIPPO", file: "Path", debug: bool = False) -> list[
     return data
 
 
-def create_scratch_subdir(subdir_name: str) -> "Path":
-    raise NotImplementedError
-    
+def mols_to_sdf(mols, out_path):
+
+    from rdkit.Chem import Mol
+    from rdkit.Chem import PandasTools
+    from pandas import DataFrame
+
+    data = []
+    for i, mol in enumerate(mols):
+        data.append({"_Name": f"mol{i}", "ROMol": Mol(mol)})
+
+    df = DataFrame(data)
+    PandasTools.WriteSDF(df, out_path, "ROMol", "_Name", list(df.columns))
