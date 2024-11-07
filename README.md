@@ -67,3 +67,34 @@ On IRIS this can be achieved with:
 ```
 sb.sh --job-name "BULKDOCK_PLACE" /opt/xchem-fragalysis-2/maxwin/slurm/run_python.sh -m bulkdock place TARGET_NAME SDF_NAME
 ```
+
+Once a placement job has finished the SDF output will be located in the OUTPUTS directory as configured.
+
+### Fragalysis export
+
+The SDF output can be modified for direct upload to the Fragalysis RHS with the `to-fragalysis` command. To see the options:
+
+```
+python -m bulkdock to-fragalysis --help
+```
+
+To avoid passing the same values for submitter_institution, submitter_name, submitter_email, and ref_url you can set the config variables:
+
+```
+python -m bulkdock configure FRAGALYSIS_EXPORT_SUBMITTER_NAME "Max Winokan"
+python -m bulkdock configure FRAGALYSIS_EXPORT_SUBMITTER_EMAIL "max.winokan@diamond.ac.uk"
+python -m bulkdock configure FRAGALYSIS_EXPORT_SUBMITTER_INSTITUTION "DLS"
+python -m bulkdock configure FRAGALYSIS_EXPORT_REF_URL "https://github.com/mwinokan/BulkDock"
+```
+
+Then to check the configuration:
+
+```
+python -m bulkdock to-fragalysis TARGET SDF_FILE METHOD_NAME
+```
+
+Once happy, submit the job:
+
+```
+sb.sh --job-name "BULKDOCK_EXPORT" /opt/xchem-fragalysis-2/maxwin/slurm/run_python.sh -m bulkdock to-fragalysis TARGET SDF_FILE METHOD_NAME
+```

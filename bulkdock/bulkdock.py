@@ -65,6 +65,37 @@ class BulkDock:
     def scratch_dir(self):
         return self.config["DIR_SCRATCH"]
 
+    @property
+    def fragalysis_export_ref_url(self):
+        return self.config["FRAGALYSIS_EXPORT_REF_URL"]
+
+    @property
+    def fragalysis_export_submitter_name(self):
+        try:
+            return self.config["FRAGALYSIS_EXPORT_SUBMITTER_NAME"]
+        except KeyError:
+            raise ValueError(
+                "Config variable FRAGALYSIS_EXPORT_SUBMITTER_NAME not set, pass it via the CLI or set the default with the configure command"
+            )
+
+    @property
+    def fragalysis_export_submitter_institution(self):
+        try:
+            return self.config["FRAGALYSIS_EXPORT_SUBMITTER_INSTITUTION"]
+        except KeyError:
+            raise ValueError(
+                "Config variable FRAGALYSIS_EXPORT_SUBMITTER_INSTITUTION not set, pass it via the CLI or set the default with the configure command"
+            )
+
+    @property
+    def fragalysis_export_submitter_email(self):
+        try:
+            return self.config["FRAGALYSIS_EXPORT_SUBMITTER_EMAIL"]
+        except KeyError:
+            raise ValueError(
+                "Config variable FRAGALYSIS_EXPORT_SUBMITTER_EMAIL not set, pass it via the CLI or set the default with the configure command"
+            )
+
     ### HIPPO
 
     def get_animal(self, target: str):
@@ -219,6 +250,100 @@ class BulkDock:
 
         return sdf_path
 
+    def to_fragalysis(
+        self,
+        *,
+        target: str,
+        sdf_file: str,
+        method: str,
+        submitter_name: str | None = None,
+        submitter_institution: str | None = None,
+        submitter_email: str | None = None,
+        ref_url: str | None = None,
+        generate_pdbs: bool = False,
+    ):
+
+        mrich.h3(f"BulkDock.to_fragalysis")
+
+        mrich.var("target", target)
+
+        inpath = self.get_outfile_path(sdf_file)
+
+        assert inpath.exists(), f"Input SDF does not exist: {inpath}"
+
+        mrich.var("inpath", inpath)
+
+        # validate fragalysis header info
+
+        assert method, "method can not be empty"
+        mrich.var("method", method)
+
+        if not ref_url:
+            ref_url = self.fragalysis_export_ref_url
+
+        mrich.var("ref_url", ref_url)
+
+        if not submitter_name:
+            submitter_name = self.fragalysis_export_submitter_name
+
+        mrich.var("submitter_name", submitter_name)
+
+        if not submitter_institution:
+            submitter_institution = self.fragalysis_export_submitter_institution
+
+        mrich.var("submitter_institution", submitter_institution)
+
+        if not submitter_email:
+            submitter_email = self.fragalysis_export_submitter_email
+
+        mrich.var("submitter_email", submitter_email)
+
+        # get the animal
+
+        animal = self.get_animal(target=target)
+
+        if not animal:
+            return
+
+        # get pose IDs from SDF file
+
+        import subprocess
+
+        command = f'grep "RDKit          3D" -B1 {inpath.resolve()} --no-group-separator | grep -v "RDKit"'
+        process = subprocess.Popen([command], shell=True, stdout=subprocess.PIPE)
+        output = process.communicate()
+
+        pose_ids = set(int(i) for i in output[0].decode().split("\n") if i)
+
+        poses = animal.poses[pose_ids]
+
+        mrich.var("poses", poses)
+
+        if generate_pdbs:
+            outpath = self.get_outfile_path(
+                sdf_file.replace(".sdf", "_fragalysis_wPDBs.sdf")
+            )
+        else:
+            outpath = self.get_outfile_path(sdf_file.replace(".sdf", "_fragalysis.sdf"))
+
+        mrich.var("outpath", outpath)
+
+        poses.to_fragalysis(
+            str(outpath.resolve()),
+            ref_url=ref_url,
+            method=method,
+            submitter_name=submitter_name,
+            submitter_institution=submitter_institution,
+            submitter_email=submitter_email,
+            generate_pdbs=generate_pdbs,
+            name_col="id",
+        )
+
+        if generate_pdbs:
+            mrich.success(f"Created Fragalysis-compatible SDF and complex PDBs")
+        else:
+            mrich.success(f"Created Fragalysis-compatible SDF")
+
     ### CONFIG
 
     def load_config(self):
@@ -256,7 +381,9 @@ class BulkDock:
             self.target_dir.exists()
         ), "Target directory does not exist. Run 'create-directories' command"
 
-        target_path = self.target_dir / target
+        target = Path(target)
+
+        target_path = self.target_dir / target.name
 
         if not target_path.exists():
             mrich.error("Could not find target", target, "in", self.target_dir)
@@ -269,7 +396,9 @@ class BulkDock:
             self.input_dir.exists()
         ), "Input directory does not exist. Run 'create-directories' command"
 
-        infile_path = self.input_dir / infile
+        infile = Path(infile)
+
+        infile_path = self.input_dir / infile.name
 
         if not infile_path.exists():
             mrich.error("Could not find", infile_path.name, "in", self.input_dir)
@@ -282,7 +411,9 @@ class BulkDock:
             self.output_dir.exists()
         ), "Output directory does not exist. Run 'create-directories' command"
 
-        outfile_path = self.output_dir / outfile
+        outfile = Path(outfile)
+
+        outfile_path = self.output_dir / outfile.name
 
         return outfile_path
 
@@ -292,7 +423,9 @@ class BulkDock:
             self.target_dir.exists()
         ), "Target directory does not exist. Run 'create-directories' command"
 
-        target_path = self.target_dir / target
+        target = Path(target)
+
+        target_path = self.target_dir / target.name
 
         if not target_path.exists():
             mrich.error("Could not find target", target, "in", self.target_dir)

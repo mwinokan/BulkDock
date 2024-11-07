@@ -17,6 +17,30 @@ def status():
 
 
 @app.command()
+def to_fragalysis(
+    target: str,
+    sdf_file: str,
+    method: str,
+    generate_pdbs: bool = False,
+    submitter_name: str = None,
+    submitter_institution: str = None,
+    submitter_email: str = None,
+    ref_url: str = None,
+):
+    """Export poses from a successful output into a Fragalysis-ready format"""
+    engine.to_fragalysis(
+        target=target,
+        sdf_file=sdf_file,
+        method=method,
+        generate_pdbs=generate_pdbs,
+        submitter_name=submitter_name,
+        submitter_institution=submitter_institution,
+        submitter_email=submitter_email,
+        ref_url=ref_url,
+    )
+
+
+@app.command()
 def place(target: str, file: str):
     """Start a placement job.
 
