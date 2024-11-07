@@ -61,13 +61,13 @@ def fragmenstein_place(
             mrich.error("Placement null result")
             continue
 
-        if result["outcome"] == "crashed" and result["error"] == "TimeoutError":
-            mrich.error("Placement timed out")
-            continue
-
         assert len(result) == 1
 
         result = result.iloc[0].to_dict()
+
+        if result["outcome"] == "crashed" and result["error"] == "TimeoutError":
+            mrich.error("Placement timed out")
+            continue
 
         mrich.h3("Placement Result")
 
