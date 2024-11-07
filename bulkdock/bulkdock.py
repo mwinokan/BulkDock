@@ -261,11 +261,20 @@ class BulkDock:
         submitter_email: str | None = None,
         ref_url: str | None = None,
         generate_pdbs: bool = False,
+        max_energy_score: float | None = 0.0,
+        max_distance_score: float | None = 2.0,
+        require_outcome: str | None = "acceptable",
+        output: str | None = None,
     ):
 
         mrich.h3(f"BulkDock.to_fragalysis")
 
         mrich.var("target", target)
+        mrich.var("generate_pdbs", generate_pdbs)
+        mrich.var("max_energy_score", max_energy_score)
+        mrich.var("max_distance_score", max_distance_score)
+        mrich.var("require_outcome", require_outcome)
+        mrich.var("output", output)
 
         inpath = self.get_outfile_path(sdf_file)
 
@@ -311,18 +320,51 @@ class BulkDock:
 
         command = f'grep "RDKit          3D" -B1 {inpath.resolve()} --no-group-separator | grep -v "RDKit"'
         process = subprocess.Popen([command], shell=True, stdout=subprocess.PIPE)
-        output = process.communicate()
 
-        pose_ids = set(int(i) for i in output[0].decode().split("\n") if i)
+        pose_ids = set(
+            int(i) for i in process.communicate()[0].decode().split("\n") if i
+        )
 
         poses = animal.poses[pose_ids]
 
+        if max_energy_score or max_distance_score or require_outcome:
+
+            new_pose_ids = set()
+
+            for pose in mrich.track(poses, prefix="Filtering poses"):
+
+                if max_energy_score and pose.energy_score > max_energy_score:
+                    continue
+
+                if max_distance_score and pose.distance_score > max_distance_score:
+                    continue
+
+                if (
+                    require_outcome
+                    and pose.metadata["fragmenstein_outcome"] != require_outcome
+                ):
+                    continue
+
+                new_pose_ids.add(pose.id)
+
+            if not new_pose_ids:
+                mrich.error("No poses left after applying filters")
+                return None
+
+            poses = animal.poses[new_pose_ids]
+
         mrich.var("poses", poses)
 
-        if generate_pdbs:
+        if output:
+            if not output.endswith(".sdf"):
+                output = f"{output}.sdf"
+            outpath = self.get_outfile_path(output)
+
+        elif generate_pdbs:
             outpath = self.get_outfile_path(
                 sdf_file.replace(".sdf", "_fragalysis_wPDBs.sdf")
             )
+
         else:
             outpath = self.get_outfile_path(sdf_file.replace(".sdf", "_fragalysis.sdf"))
 

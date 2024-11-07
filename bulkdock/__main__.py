@@ -26,6 +26,10 @@ def to_fragalysis(
     submitter_institution: str = None,
     submitter_email: str = None,
     ref_url: str = None,
+    max_energy_score: float | None = 0.0,
+    max_distance_score: float | None = 2.0,
+    require_outcome: str | None = "acceptable",
+    output: str | None = None,
 ):
     """Export poses from a successful output into a Fragalysis-ready format"""
     engine.to_fragalysis(
@@ -37,6 +41,10 @@ def to_fragalysis(
         submitter_institution=submitter_institution,
         submitter_email=submitter_email,
         ref_url=ref_url,
+        max_energy_score=max_energy_score,
+        max_distance_score=max_distance_score,
+        require_outcome=require_outcome,
+        output=output,
     )
 
 
