@@ -7,9 +7,6 @@ class BulkDock:
 
     def __init__(self):
 
-        from .models import db
-
-        self._db = db
         self._config_path = (Path(__file__).parent / "../config.json").resolve()
 
         self.load_config()
