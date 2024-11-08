@@ -114,7 +114,7 @@ def fragmenstein_place(
             energy_score=result["∆∆G"],
             distance_score=result["comRMSD"],
             metadata=metadata,
-            commit=False,
+            commit=True,
             return_pose=False,
         )
 
