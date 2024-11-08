@@ -142,15 +142,19 @@ class BulkDock:
         target: str,
         infile: str,
         debug: bool = False,
-        split: int = 1_000,
+        split: int = 6_000,
+        stagger: int = 1,
     ):
 
         mrich.h2("BulkDock.submit_placement_jobs")
         mrich.var("target", target)
         mrich.var("infile", infile)
+        mrich.var("split", split)
+        mrich.var("stagger", stagger)
 
         import os
         import subprocess
+        import time
         from .io import split_input_csv
 
         ### SOME CONFIGURATION VALIDATION
@@ -205,8 +209,11 @@ class BulkDock:
 
         job_ids = set()
 
-        for csv_path in csv_paths:
-            # mrich.bold("place", target, csv_path)
+        for i, csv_path in enumerate(csv_paths):
+
+            if stagger and i > 0:
+                with mrich.clock("Staggering job submission..."):
+                    time.sleep(stagger)
 
             job_name = f"BulkDock.place:{target}:{csv_path.name.removesuffix('.csv')}"
 
@@ -246,7 +253,7 @@ class BulkDock:
 
             mrich.success("Submitted batch job", job_id, f'"{job_name}"')
 
-        mrich.var("job_ids", job_ids)
+        mrich.var("job_ids", " ".join(str(i) for i in job_ids))
 
     def place(self, target: str, file: str, debug: bool = False):
 

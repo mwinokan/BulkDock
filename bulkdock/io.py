@@ -75,6 +75,9 @@ def parse_input_csv(
 
         # link HIPPO objects
         compound = animal.register_compound(smiles=smiles)
+
+        mrich.debug(f"{i=}", "Registered compound", compound.id)
+
         inspiration_poses = animal.poses[list(inspirations)]
 
         # one placement against each inspiration's protein conformation

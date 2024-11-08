@@ -51,7 +51,12 @@ def to_fragalysis(
 
 
 @app.command()
-def place(target: str, file: str, split: int = 1_000):
+def place(
+    target: str,
+    file: str,
+    split: int = 6_000,
+    stagger: int = 1,
+):
     """Start a placement job.
 
     Input file must be a CSV with the first column containing the SMILES and all subsequent columns containing observation shortcodes for inspiration hits
@@ -61,7 +66,7 @@ def place(target: str, file: str, split: int = 1_000):
     # :param name: or path to input file (must be in configured INPUTS directory)
     # :param split: split the input file into batches of this size
 
-    engine.submit_placement_jobs(target, file)
+    engine.submit_placement_jobs(target, file, split=split, stagger=stagger)
 
 
 @app.command()
