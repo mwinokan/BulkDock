@@ -209,9 +209,9 @@ class BulkDock:
 
         job_ids = set()
 
-        for i, csv_path in enumerate(csv_paths):
+        for i,csv_path in enumerate(csv_paths):
 
-            if stagger and i > 0:
+            if stagger and i>0:
                 with mrich.clock("Staggering job submission..."):
                     time.sleep(stagger)
 
@@ -262,6 +262,7 @@ class BulkDock:
         mrich.var("target", target)
         mrich.var("file", file)
 
+        import os
         from .io import parse_input_csv
 
         csv_path = Path(file)
@@ -278,15 +279,34 @@ class BulkDock:
             debug=debug,
         )
 
-        SLURM_JOB_ID = os.environ["SLURM_JOB_ID"]
+        SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", None)
+        mrich.var("SLURM_JOB_ID", SLURM_JOB_ID)
+        
+        SLURM_JOB_NODELIST = os.environ.get("SLURM_JOB_NODELIST", None)
+        mrich.var("SLURM_JOB_NODELIST", SLURM_JOB_NODELIST)
+        
+        SLURM_JOB_NAME = os.environ.get("SLURM_JOB_NAME", None)
+        mrich.var("SLURM_JOB_NAME", SLURM_JOB_NAME)
+        
+        SLURM_SUBMIT_DIR = os.environ.get("SLURM_SUBMIT_DIR", None)
+        mrich.var("SLURM_SUBMIT_DIR", SLURM_SUBMIT_DIR)
+        
+        SLURM_NTASKS = os.environ.get("SLURM_NTASKS", None)
+        mrich.var("SLURM_NTASKS", SLURM_NTASKS)
+        
+        SLURM_CPUS_PER_TASK = os.environ.get("SLURM_CPUS_PER_TASK", None)
+        mrich.var("SLURM_CPUS_PER_TASK", SLURM_CPUS_PER_TASK)
+        
+        SLURM_MEM_PER_CPU = os.environ.get("SLURM_MEM_PER_CPU", None)
+        mrich.var("SLURM_MEM_PER_CPU", SLURM_MEM_PER_CPU)
 
         assert SLURM_JOB_ID
-
-        from .fstein import fragmenstein_place
 
         job_scratch_dir = self.get_scratch_subdir(SLURM_JOB_ID)
 
         mrich.var("job_scratch_dir", job_scratch_dir)
+        
+        from .fstein import fragmenstein_place
 
         pose_ids = set()
 
