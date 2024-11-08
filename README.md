@@ -93,7 +93,7 @@ Then to check the configuration:
 python -m bulkdock to-fragalysis TARGET SDF_FILE METHOD_NAME
 ```
 
-Once happy, submit the job:
+Once happy, submit the job (or run the above from within a notebook):
 
 ```
 sb.sh --job-name "BULKDOCK_EXPORT" /opt/xchem-fragalysis-2/maxwin/slurm/run_python.sh -m bulkdock to-fragalysis TARGET SDF_FILE METHOD_NAME
