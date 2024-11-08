@@ -209,9 +209,9 @@ class BulkDock:
 
         job_ids = []
 
-        for i, csv_path in enumerate(csv_paths):
+        for i,csv_path in enumerate(csv_paths):
 
-            if stagger and i > 0:
+            if stagger and i>0:
                 with mrich.clock("Staggering job submission..."):
                     time.sleep(stagger)
 
@@ -274,7 +274,7 @@ class BulkDock:
 
         assert animal, "Could not initialise hippo.HIPPO animal object"
 
-        datasets = parse_input_csv(
+        data = parse_input_csv(
             animal=animal,
             file=csv_path,
             debug=debug,
@@ -282,22 +282,22 @@ class BulkDock:
 
         SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", None)
         mrich.var("SLURM_JOB_ID", SLURM_JOB_ID)
-
+        
         SLURM_JOB_NODELIST = os.environ.get("SLURM_JOB_NODELIST", None)
         mrich.var("SLURM_JOB_NODELIST", SLURM_JOB_NODELIST)
-
+        
         SLURM_JOB_NAME = os.environ.get("SLURM_JOB_NAME", None)
         mrich.var("SLURM_JOB_NAME", SLURM_JOB_NAME)
-
+        
         SLURM_SUBMIT_DIR = os.environ.get("SLURM_SUBMIT_DIR", None)
         mrich.var("SLURM_SUBMIT_DIR", SLURM_SUBMIT_DIR)
-
+        
         SLURM_NTASKS = os.environ.get("SLURM_NTASKS", None)
         mrich.var("SLURM_NTASKS", SLURM_NTASKS)
-
+        
         SLURM_CPUS_PER_TASK = os.environ.get("SLURM_CPUS_PER_TASK", None)
         mrich.var("SLURM_CPUS_PER_TASK", SLURM_CPUS_PER_TASK)
-
+        
         SLURM_MEM_PER_CPU = os.environ.get("SLURM_MEM_PER_CPU", None)
         mrich.var("SLURM_MEM_PER_CPU", SLURM_MEM_PER_CPU)
 
@@ -306,7 +306,7 @@ class BulkDock:
         job_scratch_dir = self.get_scratch_subdir(SLURM_JOB_ID)
 
         mrich.var("job_scratch_dir", job_scratch_dir)
-
+        
         pose_ids = set()
 
         for i, d in enumerate(data):
