@@ -264,6 +264,7 @@ class BulkDock:
 
         import os
         from .io import parse_input_csv
+        from .fstein import fragmenstein_place
 
         csv_path = Path(file)
 
@@ -306,8 +307,6 @@ class BulkDock:
 
         mrich.var("job_scratch_dir", job_scratch_dir)
         
-        from .fstein import fragmenstein_place
-
         pose_ids = set()
 
         for i, d in enumerate(data):
