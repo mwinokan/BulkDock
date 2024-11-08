@@ -1,19 +1,21 @@
 import mrich
-from typer import Typer
+import typer
 from .bulkdock import BulkDock
+from typing import Optional
+from typing_extensions import Annotated
 
 HELP = """
 💪 BulkDock: Manage batches of Fragmenstein restrained protein-ligand docking jobs
 """
 
-app = Typer(help=HELP, no_args_is_help=True)
+app = typer.Typer(help=HELP, no_args_is_help=True)
 engine = BulkDock()
 
 
-@app.command()
-def status():
-    """Show the status of BulkDock jobs"""
-    mrich.title("STATUS GOES HERE")
+# @app.command()
+# def status():
+#     """Show the status of BulkDock jobs"""
+#     mrich.title("STATUS GOES HERE")
 
 
 @app.command()
@@ -49,13 +51,17 @@ def to_fragalysis(
 
 
 @app.command()
-def place(target: str, file: str):
+def place(target: str, file: str, split: int = 1_000):
     """Start a placement job.
 
     Input file must be a CSV with the first column containing the SMILES and all subsequent columns containing observation shortcodes for inspiration hits
 
     """
-    engine.place(target, file)
+    # :param target: to place against
+    # :param name: or path to input file (must be in configured INPUTS directory)
+    # :param split: split the input file into batches of this size
+
+    engine.submit_placement_jobs(target, file)
 
 
 @app.command()

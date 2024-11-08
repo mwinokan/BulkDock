@@ -56,19 +56,22 @@ Place a CSV in the INPUTS directory with the following structure:
 
 **The `smiles` column is required and must come first. The name of the other columns is not used, but values in those columns must refer to the observation shortcode of any inspiration hits for this compound**
 
-The command that needs to run **from within a valid SLURM job** is:
+Configure the `SLURM_PYTHON_SCRIPT` variable which should point to a template SLURM file that has some basic SLURM headers, sets up the necessary python environment and then executes `python @`. On IRIS this is provided at:
+
+```
+python -m bulkdock configure SLURM_PYTHON_SCRIPT /opt/xchem-fragalysis-2/maxwin/slurm/run_python.sh
+```
+
+Optionally set the variable `DIR_SLURM_LOGS` to put the log files in a place other than `SCRATCH/logs`.
+
+
+Once configured, and the inputs have been placed in the INPUTS directory, the command to launch the placement jobs is:
 
 ```
 python -m bulkdock place TARGET_NAME SDF_NAME
 ```
 
-On IRIS this can be achieved with:
-
-```
-sb.sh --job-name "BULKDOCK_PLACE" /opt/xchem-fragalysis-2/maxwin/slurm/run_python.sh -m bulkdock place TARGET_NAME SDF_NAME
-```
-
-Once a placement job has finished the SDF output will be located in the OUTPUTS directory as configured.
+Once the placement jobs have finished the SDF output will be located in the OUTPUTS directory as configured.
 
 ### Fragalysis export
 

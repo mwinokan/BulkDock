@@ -137,21 +137,23 @@ class BulkDock:
 
     ### PLACEMENTS
 
-    def place(
+    def submit_placement_jobs(
         self,
         target: str,
         infile: str,
         debug: bool = False,
-        create_inspiration_sdf: bool = True,
+        split: int = 1_000,
     ):
 
-        mrich.h2("BulkDock.place")
+        mrich.h2("BulkDock.submit_placement_jobs")
         mrich.var("target", target)
         mrich.var("infile", infile)
 
         import os
-        from .io import parse_input_csv
-        from .fstein import fragmenstein_place
+        import subprocess
+        from .io import split_input_csv
+
+        ### SOME CONFIGURATION VALIDATION
 
         assert (
             self.output_dir.exists()
@@ -161,16 +163,109 @@ class BulkDock:
         ), "Scratch directory does not exist. Run 'create-directories' command"
 
         try:
-            animal = self.get_animal(target)
-        except FileNotFoundError:
-            return None
-
-        try:
             csv_path = self.get_infile_path(infile)
         except FileNotFoundError:
             return None
 
-        data = parse_input_csv(
+        assert (
+            "SLURM_PYTHON_SCRIPT" in self.config
+        ), "variable SLURM_PYTHON_SCRIPT not configured"
+
+        ### SPLIT INPUT
+
+        if split:
+            csv_paths = split_input_csv(
+                csv_path,
+                split=split,
+                out_dir=self.get_scratch_subdir(f"{target}_inputs"),
+            )
+        else:
+            csv_paths = [csv_path]
+
+        ### SUBMIT SLURM JOBS
+
+        template_script = self.config["SLURM_PYTHON_SCRIPT"]
+
+        try:
+            log_dir = Path(self.config["DIR_SLURM_LOGS"])
+        except KeyError:
+            log_dir = self.get_scratch_subdir("logs")
+
+        try:
+            submit_args = self.config["SLURM_SUBMIT_ARGS"]
+        except KeyError:
+            submit_args = ""
+
+        mrich.var("log_dir", log_dir)
+
+        # change to bulkdock root directory
+        os.chdir(Path(__file__).parent.parent)
+
+        mrich.var("submission directory", os.getcwd())
+
+        job_ids = set()
+
+        for csv_path in csv_paths:
+            # mrich.bold("place", target, csv_path)
+
+            job_name = f"BulkDock.place:{target}:{csv_path.name.removesuffix('.csv')}"
+
+            commands = [
+                "sbatch",
+                "--job-name",
+                job_name,
+                "--output=" f"{log_dir.resolve()}/%j.log",
+                "--error=" f"{log_dir.resolve()}/%j.log",
+            ]
+
+            if submit_args:
+                commands.append(submit_args)
+
+            commands += [
+                template_script,
+                "-m bulkdock.batch",
+                target,
+                str(csv_path.resolve()),
+            ]
+
+            x = subprocess.Popen(
+                commands, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+
+            output = x.communicate()
+
+            if x.returncode != 0:
+                mrich.print(output)
+                raise Exception(
+                    f"Could not submit slurm job with command: {' '.join(commands)}"
+                )
+
+            job_id = int(output[0].decode().strip().split()[-1])
+
+            job_ids.add(job_id)
+
+            mrich.success("Submitted batch job", job_id, f'"{job_name}"')
+
+        mrich.var("job_ids", job_ids)
+
+    def place(self, target: str, file: str, debug: bool = False):
+
+        mrich.h3("BulkDock.place")
+
+        mrich.var("target", target)
+        mrich.var("file", file)
+
+        from .io import parse_input_csv
+
+        csv_path = Path(file)
+
+        assert csv_path.exists()
+
+        animal = self.get_animal(target)
+
+        assert animal, "Could not initialise hippo.HIPPO animal object"
+
+        datasets = parse_input_csv(
             animal=animal,
             file=csv_path,
             debug=debug,
@@ -179,6 +274,8 @@ class BulkDock:
         SLURM_JOB_ID = os.environ["SLURM_JOB_ID"]
 
         assert SLURM_JOB_ID
+
+        from .fstein import fragmenstein_place
 
         job_scratch_dir = self.get_scratch_subdir(SLURM_JOB_ID)
 
@@ -197,6 +294,8 @@ class BulkDock:
             mrich.var("compound", compound)
             mrich.var("reference", reference)
             mrich.var("inspirations", inspirations.aliases)
+
+            create_inspiration_sdf: bool = False
 
             # create ref hits file
             if create_inspiration_sdf:

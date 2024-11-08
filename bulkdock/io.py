@@ -1,7 +1,44 @@
 import mrich
 
 
-def parse_input_csv(animal: "HIPPO", file: "Path", debug: bool = False) -> list[dict]:
+def split_input_csv(in_path: "Path", split: int, out_dir: "Path") -> "list[Path]":
+
+    mrich.h3("bulkdock.io.split_input_csv()")
+    mrich.var("input", in_path)
+    mrich.var("output", out_dir)
+    mrich.var("batch size", split)
+
+    from pandas import read_csv
+
+    # read dataframe from CSV
+    df = read_csv(in_path)
+
+    mrich.var("#compounds", len(df))
+
+    dfs = [df[i : i + split] for i in range(0, df.shape[0], split)]
+
+    mrich.var("#batches", len(dfs))
+
+    paths = []
+
+    for i, df in enumerate(dfs):
+
+        out_file = in_path.name.removesuffix(".csv") + f"_split{split}_batch{i}.csv"
+
+        out_path = out_dir / out_file
+
+        mrich.writing(out_path)
+        df.to_csv(out_path, index=False)
+        paths.append(out_path)
+
+    return paths
+
+
+def parse_input_csv(
+    animal: "HIPPO",
+    file: "Path",
+    debug: bool = False,
+) -> list[dict]:
     """
     Parse a BulkDock input CSV to prepare for an ensemble docking run where a compound is placed against each protein conformation from its inspirations.
 
