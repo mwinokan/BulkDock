@@ -1,0 +1,6 @@
+- `__init__.py` Defines package root level imports for Python API
+- `__main__.py` Defines module level CLI
+- `bulkdock.py` Defines the main `BulkDock` engine class
+- `fstein.py` Handles wrapping of `Fragmenstein` placement
+- `config.py` Defines configurable variables and their defaults
+- `io.py` Functions for file I/O
