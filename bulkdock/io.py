@@ -23,7 +23,7 @@ def split_input_csv(in_path: "Path", split: int, out_dir: "Path") -> "list[Path]
 
     for i, df in enumerate(dfs):
 
-        out_file = in_path.name.removesuffix(".csv") + f"_split{split}_batch{i}.csv"
+        out_file = in_path.name.removesuffix(".csv") + f"_split{split}_batch{i:03}.csv"
 
         out_path = out_dir / out_file
 
