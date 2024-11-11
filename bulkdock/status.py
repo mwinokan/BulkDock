@@ -61,25 +61,32 @@ def status():
         progress = output[0].decode()
 
         if command == "place":
-            i, n = progress.split("Placement task ")[-1].split(" ")[0].split("/")
+            try:
+                i, n = progress.split("Placement task ")[-1].split(" ")[0].split("/")
+                
+                i = int(i)
+                n = int(n)
 
-            i = int(i)
-            n = int(n)
+                fraction = i / n
 
-            fraction = i / n
+                progress = color_by_fraction(fraction)
 
-            progress = color_by_fraction(fraction)
+                # calculate performance
 
-            # calculate performance
+                run_seconds = human_timedelta_to_seconds(row.run_time)
 
-            run_seconds = human_timedelta_to_seconds(row.run_time)
+                performance = color_by_performance(run_seconds / i)
 
-            performance = color_by_performance(run_seconds / i)
+                # calculate remaining estimate
 
-            # calculate remaining estimate
-
-            remaining = (n - i) * (run_seconds / i)
-            remaining = human_timedelta(timedelta(seconds=remaining))
+                remaining = (n - i) * (run_seconds / i)
+                remaining = human_timedelta(timedelta(seconds=remaining))
+            
+            except ValueError:
+                progress = color_by_fraction(0)
+                performance = ""
+                remaining = ""
+                i = 0
 
         else:
 
