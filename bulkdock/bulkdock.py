@@ -231,6 +231,7 @@ class BulkDock:
             commands += [
                 template_script,
                 "-m bulkdock.batch",
+                "place",
                 target,
                 str(csv_path.resolve()),
             ]
@@ -349,7 +350,7 @@ class BulkDock:
 
         if pose_ids:
 
-            outname = infile.replace(".csv", f"_{SLURM_JOB_ID}.sdf")
+            outname = csv_path.name.replace(".csv", f"_{SLURM_JOB_ID}.sdf")
             outfile = self.get_outfile_path(outname)
 
             poses = animal.poses[pose_ids]

@@ -73,6 +73,33 @@ python -m bulkdock place TARGET_NAME SDF_NAME
 
 Once the placement jobs have finished the SDF output will be located in the OUTPUTS directory as configured.
 
+### Monitoring jobs
+
+To monitor the jobs try:
+
+```
+python -m bulkdock status
+```
+
+### Collating outputs from multiple (failed) placement jobs
+
+If a placement jobs do not correctly write out SDF outputs you can use a "collate" job to extract any Poses from certain jobs that were registered to the database. In this case write a json file containing the job ID's to the `SCRATCH/${TARGET}_inputs` directory containing the job ids. E.g. with python:
+
+```
+from bulkdock import BulkDock
+import json
+job_ids = {1,2,3,4}
+engine = BulkDock()
+target = "FatA"
+json.dump(list(job_ids), open(engine.get_scratch_subdir(f"{target}_inputs") / "FatA_Knitwork_36_active_collate_job_ids.json", "wt"))
+```
+
+And submit a collation job:
+
+```
+sbatch --job-name "BulkDock.collate:FatA:FatA_Knitwork_36_active" ../slurm/run_python.sh -m bulkdock.batch collate "FatA_Knitwork_36_active.sdf" FatA SCRATCH/FatA_inputs/FatA_Knitwork_36_active_collate_job_ids.json
+```
+
 ### Fragalysis export
 
 The SDF output can be modified for direct upload to the Fragalysis RHS with the `to-fragalysis` command. To see the options:
