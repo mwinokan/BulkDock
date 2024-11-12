@@ -71,7 +71,7 @@ Once configured, and the inputs have been placed in the INPUTS directory, the co
 python -m bulkdock place TARGET_NAME SDF_NAME
 ```
 
-Once the placement jobs have finished the SDF output will be located in the OUTPUTS directory as configured.
+Once the placement jobs have finished the individual SDF outputs will be located in the OUTPUTS directory as configured. The above command will also queue a `combine` job to run after the placement jobs, and generate a `_combined.sdf` output.
 
 ### Monitoring jobs
 

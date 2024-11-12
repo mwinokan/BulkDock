@@ -39,9 +39,8 @@ def combine(csv_file: str):
     mrich.var("csv_path", csv_path)
 
     commands = [f"grep -v smiles {str(csv_path.resolve())} | wc -l"]
-    x = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE)
-    output = x.communicate()
-    num_compounds = int(output[0].decode())
+    x = subprocess.run(commands, shell=True, stdout=subprocess.PIPE)
+    num_compounds = int(x.stdout.decode())
 
     mrich.var("num_compounds", num_compounds)
 
@@ -56,8 +55,6 @@ def combine(csv_file: str):
     pattern = f"{key}*.sdf"
 
     files = list(engine.output_dir.glob(pattern))
-
-    files = [f for f in files if not f.name.endswith("_combined.sdf")]
 
     if not files:
         mrich.error(f"Did not find any files in {engine.output_dir}/{pattern}")
@@ -81,7 +78,9 @@ def combine(csv_file: str):
 
         fields = [s for s in detail.split("_") if s]
 
-        assert len(fields) == 3
+        if not len(fields) == 3:
+            mrich.warning(f"Ignoring {file_name=}")
+            continue
 
         d["batch_size"] = int(fields[0].removeprefix("split"))
         d["batch_index"] = int(fields[1].removeprefix("batch"))
@@ -117,7 +116,7 @@ def combine(csv_file: str):
 
     for i in range(expected_batch_count):
 
-        subdf = df[df["batch_index"] == 1]
+        subdf = df[df["batch_index"] == i]
 
         if len(subdf) == 0:
             logger.error(f"Missing batch {i}")
@@ -125,9 +124,9 @@ def combine(csv_file: str):
 
         elif len(subdf) > 1:
             logger.warning(f"Multiple batches w/ {i=}: {subdf}")
-            row = df.iloc[0]
+            row = subdf.iloc[0]
         else:
-            row = df.iloc[0]
+            row = subdf.iloc[0]
 
         files.append(row["file"])
 

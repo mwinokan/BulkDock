@@ -52,18 +52,16 @@ def status():
 
         grep = [f'grep "Placement task " {row.standard_output} | tail -n 1']
 
-        x = subprocess.Popen(
+        x = subprocess.run(
             grep, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
-        output = x.communicate()
-
-        progress = output[0].decode()
+        progress = x.stdout.decode()
 
         if command == "place":
             try:
                 i, n = progress.split("Placement task ")[-1].split(" ")[0].split("/")
-                
+
                 i = int(i)
                 n = int(n)
 
@@ -81,7 +79,7 @@ def status():
 
                 remaining = (n - i) * (run_seconds / i)
                 remaining = human_timedelta(timedelta(seconds=remaining))
-            
+
             except ValueError:
                 progress = color_by_fraction(0)
                 performance = ""

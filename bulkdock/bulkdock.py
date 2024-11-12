@@ -143,7 +143,7 @@ class BulkDock:
         infile: str,
         debug: bool = False,
         split: int = 6_000,
-        stagger: int = 1,
+        stagger: float = 0.5,
     ):
 
         mrich.h2("BulkDock.submit_placement_jobs")
@@ -236,25 +236,61 @@ class BulkDock:
                 str(csv_path.resolve()),
             ]
 
-            x = subprocess.Popen(
+            x = subprocess.run(
                 commands, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
 
-            output = x.communicate()
-
             if x.returncode != 0:
-                mrich.print(output)
+                mrich.print(x.stdout)
+                mrich.print(x.stderr)
                 raise Exception(
                     f"Could not submit slurm job with command: {' '.join(commands)}"
                 )
 
-            job_id = int(output[0].decode().strip().split()[-1])
+            job_id = int(x.stdout.decode().strip().split()[-1])
 
             job_ids.append(job_id)
 
-            mrich.success("Submitted batch job", job_id, f'"{job_name}"')
+            mrich.success("Submitted place job", job_id, f'"{job_name}"')
 
         mrich.var("job_ids", " ".join(str(i) for i in job_ids))
+
+        ### submit combine job to run after completion
+
+        job_name = f"BulkDock.combine:{target}:{csv_path.name.removesuffix('.csv')}"
+
+        commands = [
+            "sbatch",
+            "--job-name",
+            job_name,
+            "--output=" f"{log_dir.resolve()}/%j.log",
+            "--error=" f"{log_dir.resolve()}/%j.log",
+            f"--dependency=afterany:{':'.join(str(i) for i in job_ids)}",
+        ]
+
+        if submit_args:
+            commands.append(submit_args)
+
+        commands += [
+            template_script,
+            "-m bulkdock.batch",
+            "combine",
+            infile,
+        ]
+
+        x = subprocess.run(
+            commands, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+        if x.returncode != 0:
+            mrich.print(x.stdout)
+            mrich.print(x.stderr)
+            raise Exception(
+                f"Could not submit slurm job with command: {' '.join(commands)}"
+            )
+
+        job_id = int(x.stdout.decode().strip().split()[-1])
+        mrich.success("Submitted combine job", job_id, f'"{job_name}"')
 
     def place(self, target: str, file: str, debug: bool = False):
 
@@ -442,13 +478,16 @@ class BulkDock:
         import subprocess
 
         command = f'grep "RDKit          3D" -B1 {inpath.resolve()} --no-group-separator | grep -v "RDKit"'
-        process = subprocess.Popen([command], shell=True, stdout=subprocess.PIPE)
 
-        pose_ids = set(
-            int(i) for i in process.communicate()[0].decode().split("\n") if i
-        )
+        process = subprocess.run([command], shell=True, stdout=subprocess.PIPE)
+
+        pose_ids = set(int(i.strip()) for i in process.stdout.decode().split("\n") if i)
+
+        mrich.var("#pose_ids", len(pose_ids))
 
         poses = animal.poses[pose_ids]
+
+        mrich.var("unfiltered poses", poses)
 
         if max_energy_score or max_distance_score or require_outcome:
 
@@ -476,7 +515,7 @@ class BulkDock:
 
             poses = animal.poses[new_pose_ids]
 
-        mrich.var("poses", poses)
+        mrich.var("filtered poses", poses)
 
         if output:
             if not output.endswith(".sdf"):
@@ -484,12 +523,19 @@ class BulkDock:
             outpath = self.get_outfile_path(output)
 
         elif generate_pdbs:
-            outpath = self.get_outfile_path(
-                sdf_file.replace(".sdf", "_fragalysis_wPDBs.sdf")
+            outname = (
+                sdf_file.removesuffix(".sdf").removesuffix("_combined")
+                + "_fragalysis_wPDBs.sdf"
             )
 
+            outpath = self.get_outfile_path(outname)
+
         else:
-            outpath = self.get_outfile_path(sdf_file.replace(".sdf", "_fragalysis.sdf"))
+            outname = (
+                sdf_file.removesuffix(".sdf").removesuffix("_combined")
+                + "_fragalysis.sdf"
+            )
+            outpath = self.get_outfile_path(outname)
 
         mrich.var("outpath", outpath)
 
