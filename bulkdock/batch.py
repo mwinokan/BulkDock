@@ -14,9 +14,126 @@ engine = BulkDock()
 
 @app.command()
 def place(target: str, file: str):
+    """Run Bulkdock.place"""
+    mrich.h3("bulkdock.batch.place")
     mrich.var("target", target)
     mrich.var("file", file)
     engine.place(target, file)
+
+
+@app.command()
+def combine(csv_file: str):
+    """Combine split SDF outputs from placement jobs"""
+
+    import subprocess
+    from pandas import DataFrame
+    from pathlib import Path
+    from rich.table import Table
+    from math import ceil
+    from molparse.rdkit import sdf_combine
+
+    mrich.h3("bulkdock.batch.combine")
+    mrich.var("csv_file", csv_file)
+
+    csv_path = engine.get_infile_path(csv_file)
+    mrich.var("csv_path", csv_path)
+
+    commands = [f"grep -v smiles {str(csv_path.resolve())} | wc -l"]
+    x = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE)
+    output = x.communicate()
+    num_compounds = int(output[0].decode())
+
+    mrich.var("num_compounds", num_compounds)
+
+    # name of the input file
+    key = Path(csv_file).name
+
+    assert key.endswith(".csv") or key.endswith(".sdf")
+    key = key.removesuffix(".csv").removesuffix(".sdf")
+
+    mrich.var("key", key)
+
+    pattern = f"{key}*.sdf"
+
+    files = list(engine.output_dir.glob(pattern))
+
+    files = [f for f in files if not f.name.endswith("_combined.sdf")]
+
+    if not files:
+        mrich.error(f"Did not find any files in {engine.output_dir}/{pattern}")
+        raise FileNotFoundError(
+            f"Did not find any files in {engine.output_dir}/{pattern}"
+        )
+
+    if len(files) == 1:
+        mrich.var("files", files)
+        mrich.warning("Only one matching output, not doing anything")
+        return
+
+    df = []
+    for file in files:
+
+        d = dict(key=key, file=file)
+
+        file_name = file.name
+
+        detail = file_name.removeprefix(key).removesuffix(".sdf")
+
+        fields = [s for s in detail.split("_") if s]
+
+        assert len(fields) == 3
+
+        d["batch_size"] = int(fields[0].removeprefix("split"))
+        d["batch_index"] = int(fields[1].removeprefix("batch"))
+        d["job_id"] = int(fields[2])
+
+        df.append(d)
+
+    df = DataFrame(df)
+
+    df = df.sort_values(by="batch_index")
+
+    mrich.print(df.drop(columns=["file"]))
+
+    batch_sizes = df["batch_size"].to_numpy()
+    if not (batch_sizes[0] == batch_sizes).all():
+        raise NotImplementedError("Not currently supporting multiple batch sizes")
+
+    files = []
+
+    batch_size = batch_sizes[0]
+
+    mrich.var("batch_size", batch_size)
+
+    expected_batch_count = ceil(num_compounds / batch_size)
+
+    mrich.var("expected_batch_count", expected_batch_count)
+
+    if len(df) > expected_batch_count:
+        mrich.warning("Too many batches")
+
+    elif len(df) < expected_batch_count:
+        mrich.warning("Missing batches")
+
+    for i in range(expected_batch_count):
+
+        subdf = df[df["batch_index"] == 1]
+
+        if len(subdf) == 0:
+            logger.error(f"Missing batch {i}")
+            continue
+
+        elif len(subdf) > 1:
+            logger.warning(f"Multiple batches w/ {i=}: {subdf}")
+            row = df.iloc[0]
+        else:
+            row = df.iloc[0]
+
+        files.append(row["file"])
+
+    out_path = engine.get_outfile_path(f"{key}_combined.sdf")
+
+    sdf_combine(files, out_path)
 
 
 @app.command()
