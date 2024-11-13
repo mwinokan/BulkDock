@@ -57,7 +57,7 @@ def to_fragalysis(
 def place(
     target: str,
     file: str,
-    split: int = 6_000,
+    split: int = 1_000,
     stagger: int = 1,
 ):
     """Start a placement job.
