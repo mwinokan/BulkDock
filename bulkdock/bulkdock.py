@@ -167,7 +167,7 @@ class BulkDock:
         ), "Scratch directory does not exist. Run 'create-directories' command"
 
         try:
-            csv_path = self.get_infile_path(infile)
+            orig_path = self.get_infile_path(infile)
         except FileNotFoundError:
             return None
 
@@ -179,12 +179,12 @@ class BulkDock:
 
         if split:
             csv_paths = split_input_csv(
-                csv_path,
+                orig_path,
                 split=split,
                 out_dir=self.get_scratch_subdir(f"{target}_inputs"),
             )
         else:
-            csv_paths = [csv_path]
+            csv_paths = [orig_path]
 
         ### SUBMIT SLURM JOBS
 
@@ -257,7 +257,7 @@ class BulkDock:
 
         ### submit combine job to run after completion
 
-        job_name = f"BulkDock.combine:{target}:{csv_path.name.removesuffix('.csv')}"
+        job_name = f"BulkDock.combine:{target}:{orig_path.name.removesuffix('.csv')}"
 
         commands = [
             "sbatch",
