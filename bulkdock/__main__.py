@@ -34,9 +34,15 @@ def to_fragalysis(
     max_energy_score: float | None = 0.0,
     max_distance_score: float | None = 2.0,
     require_outcome: str | None = "acceptable",
+    posebusters: bool = True,
     output: str | None = None,
 ):
     """Export poses from a successful output into a Fragalysis-ready format"""
+    
+    pose_filter_methods = []
+    if posebusters:
+        pose_filter_methods.append("posebusters")
+
     engine.to_fragalysis(
         target=target,
         sdf_file=sdf_file,
@@ -49,6 +55,7 @@ def to_fragalysis(
         max_energy_score=max_energy_score,
         max_distance_score=max_distance_score,
         require_outcome=require_outcome,
+        pose_filter_methods=pose_filter_methods,
         output=output,
     )
 
