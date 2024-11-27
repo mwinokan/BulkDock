@@ -5,6 +5,22 @@ __pycache__/
 
 # C extensions
 *.so
+*.sqlite
+*.json
+*.csv
+*.sdf
+*.mol
+*.pdb
+*.zip
+*.log
+*.yaml
+smiles.smi
+README.pdf
+aligned_files/
+SCRATCH
+TARGETS
+INPUTS
+OUTPUTS
 
 # Distribution / packaging
 .Python
