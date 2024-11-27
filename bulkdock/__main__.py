@@ -58,7 +58,7 @@ def place(
     target: str,
     file: str,
     split: int = 1_000,
-    stagger: int = 1,
+    stagger: int = 0.25,
 ):
     """Start a placement job.
 
