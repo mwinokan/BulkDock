@@ -16,6 +16,7 @@ def status():
     df = df[df["name"].str.startswith("BulkDock")]
     df = df[df["job_state"].isin(["RUNNING", "PENDING"])]
     df = df[["name", "job_id", "run_time", "standard_output", "job_state"]]
+    df = df.sort_values(by="job_id")
 
     # create the table
     table = Table(title="Active BulkDock Jobs", box=None, header_style="")
