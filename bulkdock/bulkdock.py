@@ -366,7 +366,9 @@ class BulkDock:
                 mrich.var("ref_hits_path", ref_hits_path)
 
             # create protein file
-            protein_path = reference.path.replace("_hippo.pdb",".pdb").replace(".pdb", "_apo-desolv.pdb")
+            protein_path = reference.path.replace("_hippo.pdb", ".pdb").replace(
+                ".pdb", "_apo-desolv.pdb"
+            )
             mrich.var("protein_path", protein_path)
 
             pose_id = fragmenstein_place(
@@ -422,8 +424,10 @@ class BulkDock:
         generate_pdbs: bool = False,
         max_energy_score: float | None = 0.0,
         max_distance_score: float | None = 2.0,
+        pose_filter_methods: list[str] = ["posebusters"],
         require_outcome: str | None = "acceptable",
         output: str | None = None,
+        debug: bool = True,
     ):
 
         mrich.h3(f"BulkDock.to_fragalysis")
@@ -483,6 +487,8 @@ class BulkDock:
 
         pose_ids = set(int(i.strip()) for i in process.stdout.decode().split("\n") if i)
 
+        mrich.debug("pose_ids=", pose_ids)
+
         mrich.var("#pose_ids", len(pose_ids))
 
         poses = animal.poses[pose_ids]
@@ -496,16 +502,37 @@ class BulkDock:
             for pose in mrich.track(poses, prefix="Filtering poses"):
 
                 if max_energy_score and pose.energy_score > max_energy_score:
+                    if debug:
+                        mrich.debug(
+                            f"Filtered out {pose} due to {pose.energy_score=:.3f} <= {max_energy_score}:"
+                        )
                     continue
 
                 if max_distance_score and pose.distance_score > max_distance_score:
+                    if debug:
+                        mrich.debug(
+                            f"Filtered out {pose} due to {pose.distance_score=:.3f} <= {max_distance_score}:"
+                        )
                     continue
 
                 if (
                     require_outcome
                     and pose.metadata["fragmenstein_outcome"] != require_outcome
                 ):
+                    if debug:
+                        mrich.debug(
+                            f"Filtered out {pose} due to fragmenstein_outcome != {require_outcome}:"
+                        )
                     continue
+
+                if pose_filter_methods:
+                    for method in pose_filter_methods:
+                        func = getattr(pose, method)
+                        passed = func(debug=debug)
+                        if not passed:
+                            if debug:
+                                mrich.debug(f"Filtered out {pose} due to {method}:")
+                            continue
 
                 new_pose_ids.add(pose.id)
 
