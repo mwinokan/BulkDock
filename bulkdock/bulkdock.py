@@ -366,7 +366,7 @@ class BulkDock:
                 mrich.var("ref_hits_path", ref_hits_path)
 
             # create protein file
-            protein_path = reference.path.replace(".pdb", "_apo-desolv.pdb")
+            protein_path = reference.path.replace("_hippo.pdb",".pdb").replace(".pdb", "_apo-desolv.pdb")
             mrich.var("protein_path", protein_path)
 
             pose_id = fragmenstein_place(
