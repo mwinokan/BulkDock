@@ -60,23 +60,27 @@ def parse_input_csv(
 
     assert "smiles" in df.columns
 
+    mrich.h1("Compound Registration")
+    values = animal.register_compounds(smiles=df["smiles"].values)
+
+    inchikeys = [inchikey for inchikey, smiles in values]
+    
     data = []
 
-    for i, row in df.iterrows():
+    mrich.h1("Placements")
+
+    for (i, row), inchikey in zip(df.iterrows(), inchikeys):
 
         # extract row values
         smiles = row.smiles
         inspirations = row.values[1:]
 
+        compound = animal.db.get_compound(inchikey=inchikey)
+
         # debug output
         if debug:
             mrich.debug("i", i)
             mrich.debug("smiles", smiles)
-
-        # link HIPPO objects
-        compound = animal.register_compound(smiles=smiles)
-
-        mrich.debug(f"{i=}", "Registered compound", compound.id)
 
         inspiration_poses = animal.poses[list(inspirations)]
 
@@ -96,6 +100,7 @@ def parse_input_csv(
             if debug:
                 mrich.h3("Placement")
                 mrich.var("smiles", smiles)
+                mrich.var("inchikey", inchikey)
                 mrich.var("compound", compound)
                 mrich.var("protein", pose.alias)
                 mrich.var("inspirations", inspiration_poses.aliases)
