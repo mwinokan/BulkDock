@@ -25,7 +25,10 @@ def fragmenstein_place(
     n_retries: int = 3,
     timeout: int = 300,
     write_hit_mols: bool = True,
+    metadata: dict | None = None,
 ) -> "Pose | bool":
+
+    metadata = metadata or {}
 
     # set up lab
     laboratory = setup_wictor_laboratory(
@@ -95,14 +98,11 @@ def fragmenstein_place(
     mol_path = subdir / f"{name}.minimised.mol"
 
     if mol_path.exists():
-
-        metadata = {
-            "scratch_subdir": str(subdir.resolve()),
-            "fragmenstein_runtime": result["runtime"],
-            "fragmenstein_outcome": result["outcome"],
-            "fragmenstein_mode": result["mode"],
-            "fragmenstein_error": result["error"],
-        }
+        metadata["scratch_subdir"] = str(subdir.resolve()),
+        metadata["fragmenstein_runtime"] = result["runtime"],
+        metadata["fragmenstein_outcome"] = result["outcome"],
+        metadata["fragmenstein_mode"] = result["mode"],
+        metadata["fragmenstein_error"] = result["error"],
 
         pose_id = animal.register_pose(
             compound=compound,
@@ -110,7 +110,7 @@ def fragmenstein_place(
             path=mol_path,
             reference=reference,
             inspirations=inspirations,
-            tags=["Fragmenstein"],
+            tags=["Fragmenstein placed"],
             energy_score=result["∆∆G"],
             distance_score=result["comRMSD"],
             metadata=metadata,
