@@ -38,7 +38,7 @@ def to_fragalysis(
     output: str | None = None,
 ):
     """Export poses from a successful output into a Fragalysis-ready format"""
-    
+
     pose_filter_methods = []
     if posebusters:
         pose_filter_methods.append("posebusters")
@@ -78,7 +78,9 @@ def place(
     # :param name: or path to input file (must be in configured INPUTS directory)
     # :param split: split the input file into batches of this size
 
-    engine.submit_placement_jobs(target, file, split=split, stagger=stagger, dependency=dependency)
+    engine.submit_placement_jobs(
+        target, file, split=split, stagger=stagger, dependency=dependency
+    )
 
 
 @app.command()

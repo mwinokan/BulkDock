@@ -64,7 +64,7 @@ def parse_input_csv(
     values = animal.register_compounds(smiles=df["smiles"].values)
 
     inchikeys = [inchikey for inchikey, smiles in values]
-    
+
     data = []
 
     mrich.h1("Placements")

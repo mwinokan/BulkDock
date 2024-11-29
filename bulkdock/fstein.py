@@ -98,11 +98,11 @@ def fragmenstein_place(
     mol_path = subdir / f"{name}.minimised.mol"
 
     if mol_path.exists():
-        metadata["scratch_subdir"] = str(subdir.resolve()),
-        metadata["fragmenstein_runtime"] = result["runtime"],
-        metadata["fragmenstein_outcome"] = result["outcome"],
-        metadata["fragmenstein_mode"] = result["mode"],
-        metadata["fragmenstein_error"] = result["error"],
+        metadata["scratch_subdir"] = (str(subdir.resolve()),)
+        metadata["fragmenstein_runtime"] = (result["runtime"],)
+        metadata["fragmenstein_outcome"] = (result["outcome"],)
+        metadata["fragmenstein_mode"] = (result["mode"],)
+        metadata["fragmenstein_error"] = (result["error"],)
 
         pose_id = animal.register_pose(
             compound=compound,
