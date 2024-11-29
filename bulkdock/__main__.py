@@ -66,17 +66,19 @@ def place(
     file: str,
     split: int = 1_000,
     stagger: int = 0.25,
+    dependency: int = 0,
 ):
     """Start a placement job.
 
     Input file must be a CSV with the first column containing the SMILES and all subsequent columns containing observation shortcodes for inspiration hits
 
     """
+
     # :param target: to place against
     # :param name: or path to input file (must be in configured INPUTS directory)
     # :param split: split the input file into batches of this size
 
-    engine.submit_placement_jobs(target, file, split=split, stagger=stagger)
+    engine.submit_placement_jobs(target, file, split=split, stagger=stagger, dependency=dependency)
 
 
 @app.command()

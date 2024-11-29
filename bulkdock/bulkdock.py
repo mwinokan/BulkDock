@@ -144,6 +144,7 @@ class BulkDock:
         debug: bool = False,
         split: int = 6_000,
         stagger: float = 0.5,
+        dependency: str | None = None,
     ):
 
         mrich.h2("BulkDock.submit_placement_jobs")
@@ -224,6 +225,9 @@ class BulkDock:
                 "--output=" f"{log_dir.resolve()}/%j.log",
                 "--error=" f"{log_dir.resolve()}/%j.log",
             ]
+
+            if dependency:
+                commands.append(f"--dependency=afterany:{dependency}")
 
             if submit_args:
                 commands.append(submit_args)
@@ -360,6 +364,12 @@ class BulkDock:
 
             create_inspiration_sdf: bool = False
 
+            metadata = dict(
+                SLURM_JOB_ID=SLURM_JOB_ID,
+                SLURM_JOB_NAME=SLURM_JOB_NAME,
+                csv_name=csv_path.name,
+            )
+
             # create ref hits file
             if create_inspiration_sdf:
                 ref_hits_path = self.create_inspiration_sdf(target, inspirations)
@@ -378,6 +388,7 @@ class BulkDock:
                 reference=reference,
                 inspirations=inspirations,
                 protein_path=protein_path,
+                metadata=metadata,
             )
 
             if pose_id:
