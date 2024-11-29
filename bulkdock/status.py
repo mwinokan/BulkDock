@@ -37,6 +37,9 @@ def status():
         "[bold underline]Performance", justify="right", style="bold cornflower_blue"
     )
     table.add_column(
+        "[bold underline]Locked", justify="right", style="bold cornflower_blue"
+    )
+    table.add_column(
         "[cornflower_blue underline]Remaining", justify="right", style="cornflower_blue"
     )
 
@@ -59,6 +62,16 @@ def status():
 
         progress = x.stdout.decode()
 
+        grep = [f'grep "SQLite Database was locked, retrying..." {row.standard_output} | wc -l']
+
+        x = subprocess.run(
+            grep, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+        locked = x.stdout.decode()
+        
+        run_seconds = human_timedelta_to_seconds(row.run_time)
+
         if command == "place":
             try:
                 i, n = progress.split("Placement task ")[-1].split(" ")[0].split("/")
@@ -72,9 +85,9 @@ def status():
 
                 # calculate performance
 
-                run_seconds = human_timedelta_to_seconds(row.run_time)
 
                 performance = color_by_performance(run_seconds / i)
+
 
                 # calculate remaining estimate
 
@@ -94,6 +107,12 @@ def status():
             remaining = ""
             i = ""
 
+        # calculate lock fraction
+        if run_seconds:
+            locked = f"{int(locked) / run_seconds*100:.1f} %"
+        else:
+            locked = ""
+
         values.append(str(row.job_id))
         values.append(command)
         values.append(target)
@@ -103,6 +122,7 @@ def status():
         values.append(str(i))
         values.append(progress)
         values.append(performance)
+        values.append(locked)
         values.append(str(remaining))
 
         table.add_row(*values)
@@ -137,6 +157,19 @@ def color_by_fraction(fraction):
         color = "bright_yellow"
     elif fraction > 0.25:
         color = "dark_orange"
+    else:
+        color = "red"
+
+    return f"[{color}]{fraction*100:.1f} %"
+
+def color_by_fraction_inverse(fraction):
+
+    if fraction > 0.75:
+        color = "dark_orange"
+    elif fraction > 0.50:
+        color = "bright_yellow"
+    elif fraction > 0.25:
+        color = "bright_green"
     else:
         color = "red"
 
