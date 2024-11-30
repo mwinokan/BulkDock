@@ -63,6 +63,20 @@ class BulkDock:
         return self.config["DIR_SCRATCH"]
 
     @property
+    def email_address(self):
+        if "EMAIL_ADDRESS" not in self.config:
+            return None
+        return self.config["EMAIL_ADDRESS"]
+
+    @property
+    def slurm_email_place(self):
+        return self.config["SLURM_EMAIL_PLACE"]
+
+    @property
+    def slurm_email_combine(self):
+        return self.config["SLURM_EMAIL_COMBINE"]
+
+    @property
     def fragalysis_export_ref_url(self):
         return self.config["FRAGALYSIS_EXPORT_REF_URL"]
 
@@ -232,6 +246,10 @@ class BulkDock:
             if submit_args:
                 commands.append(submit_args)
 
+            if self.email_address and self.slurm_email_place:
+                commands.append(f"--mail-user={self.email_address}")
+                commands.append(f"--mail-type={self.slurm_email_place}")
+
             commands += [
                 template_script,
                 "-m bulkdock.batch",
@@ -274,6 +292,10 @@ class BulkDock:
 
         if submit_args:
             commands.append(submit_args)
+
+        if self.email_address and self.slurm_email_combine:
+            commands.append(f"--mail-user={self.email_address}")
+            commands.append(f"--mail-type={self.slurm_email_combine}")
 
         commands += [
             template_script,
