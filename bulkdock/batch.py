@@ -1,5 +1,6 @@
 import mrich
 import typer
+from typing_extensions import Annotated
 from .bulkdock import BulkDock
 
 HELP = """
@@ -13,12 +14,22 @@ engine = BulkDock()
 
 
 @app.command()
-def place(target: str, file: str):
+def place(
+    target: str,
+    file: str,
+    reference: Annotated[
+        str,
+        typer.Option(
+            help="Name of reference pose, if none is specified will ensemble dock against inspirations"
+        ),
+    ] = "",
+):
     """Run Bulkdock.place"""
     mrich.h3("bulkdock.batch.place")
     mrich.var("target", target)
     mrich.var("file", file)
-    engine.place(target, file)
+    mrich.var("reference", reference)
+    engine.place(target, file, reference=reference)
 
 
 @app.command()
@@ -119,11 +130,11 @@ def combine(csv_file: str):
         subdf = df[df["batch_index"] == i]
 
         if len(subdf) == 0:
-            logger.error(f"Missing batch {i}")
+            mrich.error(f"Missing batch {i}")
             continue
 
         elif len(subdf) > 1:
-            logger.warning(f"Multiple batches w/ {i=}: {subdf}")
+            mrich.warning(f"Multiple batches w/ {i=}: {subdf}")
             row = subdf.iloc[0]
         else:
             row = subdf.iloc[0]

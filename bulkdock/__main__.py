@@ -67,6 +67,12 @@ def place(
     split: int = 1_000,
     stagger: int = 0.25,
     dependency: int = 0,
+    reference: Annotated[
+        str,
+        typer.Option(
+            help="Name of reference pose, if none is specified will ensemble dock against inspirations"
+        ),
+    ] = "",
 ):
     """Start a placement job.
 
@@ -79,7 +85,12 @@ def place(
     # :param split: split the input file into batches of this size
 
     engine.submit_placement_jobs(
-        target, file, split=split, stagger=stagger, dependency=dependency
+        target,
+        file,
+        split=split,
+        stagger=stagger,
+        dependency=dependency,
+        reference=reference,
     )
 
 

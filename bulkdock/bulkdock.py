@@ -159,6 +159,7 @@ class BulkDock:
         split: int = 6_000,
         stagger: float = 0.5,
         dependency: str | None = None,
+        reference: str | None = None,
     ):
 
         mrich.h2("BulkDock.submit_placement_jobs")
@@ -166,6 +167,8 @@ class BulkDock:
         mrich.var("infile", infile)
         mrich.var("split", split)
         mrich.var("stagger", stagger)
+        mrich.var("dependency", dependency)
+        mrich.var("reference", reference)
 
         import os
         import subprocess
@@ -258,6 +261,9 @@ class BulkDock:
                 str(csv_path.resolve()),
             ]
 
+            if reference:
+                commands.append(f"--reference {reference}")
+
             x = subprocess.run(
                 commands, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
@@ -318,7 +324,9 @@ class BulkDock:
         job_id = int(x.stdout.decode().strip().split()[-1])
         mrich.success("Submitted combine job", job_id, f'"{job_name}"')
 
-    def place(self, target: str, file: str, debug: bool = False):
+    def place(
+        self, target: str, file: str, debug: bool = False, reference: str | None = None
+    ):
 
         mrich.h3("BulkDock.place")
 
@@ -341,6 +349,7 @@ class BulkDock:
             animal=animal,
             file=csv_path,
             debug=debug,
+            reference=reference,
         )
 
         SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", None)
