@@ -64,7 +64,7 @@ def parse_input_csv(
     values = animal.register_compounds(smiles=df["smiles"].values)
 
     inchikeys = [inchikey for inchikey, smiles in values]
-    
+
     data = []
 
     mrich.h1("Placements")
@@ -83,7 +83,7 @@ def parse_input_csv(
             mrich.debug("i", i)
             mrich.debug("smiles", smiles)
 
-        inspirations = [i for i in inspirations if isinstance(i,str) and i]
+        inspirations = [i for i in inspirations if isinstance(i, str) and i]
 
         try:
             inspiration_poses = animal.poses[list(inspirations)]

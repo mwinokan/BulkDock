@@ -532,7 +532,9 @@ class BulkDock:
 
             new_pose_ids = set()
 
-            for i,pose in mrich.track(enumerate(poses), prefix="Filtering poses", total=len(poses)):
+            for i, pose in mrich.track(
+                enumerate(poses), prefix="Filtering poses", total=len(poses)
+            ):
 
                 mrich.set_progress_field("progress", f"{i+1}/{len(poses)}")
                 mrich.set_progress_field("ok", len(new_pose_ids))
@@ -556,10 +558,7 @@ class BulkDock:
                     outcome = outcome[0]
                 # .removeprefix("['").removesuffix("']")
 
-                if (
-                    require_outcome
-                    and outcome != require_outcome
-                ):
+                if require_outcome and outcome != require_outcome:
                     if debug:
                         mrich.debug(
                             f"Filtered out {pose} due to fragmenstein_outcome={outcome} != {require_outcome}:"
@@ -572,7 +571,9 @@ class BulkDock:
                         passed = func(debug=debug)
                         if not passed:
                             if debug:
-                                mrich.debug(f"Filtered out {pose} due to {filter_method}:")
+                                mrich.debug(
+                                    f"Filtered out {pose} due to {filter_method}:"
+                                )
                             continue
 
                 mrich.success(pose, "OK")
