@@ -510,40 +510,50 @@ class BulkDock:
 
             new_pose_ids = set()
 
-            for pose in mrich.track(poses, prefix="Filtering poses"):
+            for i,pose in mrich.track(enumerate(poses), prefix="Filtering poses", total=len(poses)):
+
+                mrich.set_progress_field("progress", f"{i+1}/{len(poses)}")
+                mrich.set_progress_field("ok", len(new_pose_ids))
 
                 if max_energy_score and pose.energy_score > max_energy_score:
                     if debug:
                         mrich.debug(
-                            f"Filtered out {pose} due to {pose.energy_score=:.3f} <= {max_energy_score}:"
+                            f"Filtered out {pose} due to {pose.energy_score=:.3f} > {max_energy_score}:"
                         )
                     continue
 
                 if max_distance_score and pose.distance_score > max_distance_score:
                     if debug:
                         mrich.debug(
-                            f"Filtered out {pose} due to {pose.distance_score=:.3f} <= {max_distance_score}:"
+                            f"Filtered out {pose} due to {pose.distance_score=:.3f} > {max_distance_score}:"
                         )
                     continue
 
+                outcome = pose.metadata["fragmenstein_outcome"]
+                if isinstance(outcome, list):
+                    outcome = outcome[0]
+                # .removeprefix("['").removesuffix("']")
+
                 if (
                     require_outcome
-                    and pose.metadata["fragmenstein_outcome"] != require_outcome
+                    and outcome != require_outcome
                 ):
                     if debug:
                         mrich.debug(
-                            f"Filtered out {pose} due to fragmenstein_outcome != {require_outcome}:"
+                            f"Filtered out {pose} due to fragmenstein_outcome={outcome} != {require_outcome}:"
                         )
                     continue
 
                 if pose_filter_methods:
-                    for method in pose_filter_methods:
-                        func = getattr(pose, method)
+                    for filter_method in pose_filter_methods:
+                        func = getattr(pose, filter_method)
                         passed = func(debug=debug)
                         if not passed:
                             if debug:
-                                mrich.debug(f"Filtered out {pose} due to {method}:")
+                                mrich.debug(f"Filtered out {pose} due to {filter_method}:")
                             continue
+
+                mrich.success(pose, "OK")
 
                 new_pose_ids.add(pose.id)
 
