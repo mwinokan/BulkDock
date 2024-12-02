@@ -64,7 +64,7 @@ def parse_input_csv(
     values = animal.register_compounds(smiles=df["smiles"].values)
 
     inchikeys = [inchikey for inchikey, smiles in values]
-
+    
     data = []
 
     mrich.h1("Placements")
@@ -76,13 +76,21 @@ def parse_input_csv(
         inspirations = row.values[1:]
 
         compound = animal.db.get_compound(inchikey=inchikey)
+        assert compound
 
         # debug output
         if debug:
             mrich.debug("i", i)
             mrich.debug("smiles", smiles)
 
-        inspiration_poses = animal.poses[list(inspirations)]
+        inspirations = [i for i in inspirations if isinstance(i,str) and i]
+
+        try:
+            inspiration_poses = animal.poses[list(inspirations)]
+        except Exception as e:
+            mrich.error(e)
+            mrich.error(f"Could not find get {inspirations=}")
+            continue
 
         # one placement against each inspiration's protein conformation
         for pose in inspiration_poses:
