@@ -193,6 +193,8 @@ class BulkDock:
             "SLURM_PYTHON_SCRIPT" in self.config
         ), "variable SLURM_PYTHON_SCRIPT not configured"
 
+        target = Path(target).name
+
         ### SPLIT INPUT
 
         if split:
