@@ -3,6 +3,7 @@ import typer
 from .bulkdock import BulkDock
 from typing import Optional
 from typing_extensions import Annotated
+from .config import VARIABLES
 
 HELP = """
 💪 BulkDock: Manage batches of Fragmenstein restrained protein-ligand docking jobs
@@ -95,13 +96,17 @@ def place(
 
 
 @app.command()
-def configure(variable: str, value: str):
+def configure(
+    variable: Annotated[
+        str, typer.Argument(help=f"variable to configure, options are: {VARIABLES}")
+    ],
+    value: str,
+):
     """Configure"""
+
     mrich.h2("BulkDock.configure")
     mrich.var("variable", variable)
     mrich.var("value", value)
-    from .config import VARIABLES
-
     assert variable in VARIABLES
     engine.set_config_value(variable, value)
 
