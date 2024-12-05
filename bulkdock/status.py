@@ -62,14 +62,16 @@ def status():
 
         progress = x.stdout.decode()
 
-        grep = [f'grep "SQLite Database was locked, retrying..." {row.standard_output} | wc -l']
+        grep = [
+            f'grep "SQLite Database was locked, retrying..." {row.standard_output} | wc -l'
+        ]
 
         x = subprocess.run(
             grep, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
         locked = x.stdout.decode()
-        
+
         run_seconds = human_timedelta_to_seconds(row.run_time)
 
         if command == "place":
@@ -85,9 +87,7 @@ def status():
 
                 # calculate performance
 
-
                 performance = color_by_performance(run_seconds / i)
-
 
                 # calculate remaining estimate
 
@@ -161,6 +161,7 @@ def color_by_fraction(fraction):
         color = "red"
 
     return f"[{color}]{fraction*100:.1f} %"
+
 
 def color_by_fraction_inverse(fraction):
 

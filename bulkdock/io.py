@@ -38,6 +38,7 @@ def parse_input_csv(
     animal: "HIPPO",
     file: "Path",
     debug: bool = False,
+    reference: str | None = None,
 ) -> list[dict]:
     """
     Parse a BulkDock input CSV to prepare for an ensemble docking run where a compound is placed against each protein conformation from its inspirations.
@@ -76,22 +77,54 @@ def parse_input_csv(
         inspirations = row.values[1:]
 
         compound = animal.db.get_compound(inchikey=inchikey)
+        assert compound
 
         # debug output
         if debug:
             mrich.debug("i", i)
             mrich.debug("smiles", smiles)
 
-        inspiration_poses = animal.poses[list(inspirations)]
+        inspirations = [i for i in inspirations if isinstance(i, str) and i]
 
-        # one placement against each inspiration's protein conformation
-        for pose in inspiration_poses:
+        try:
+            inspiration_poses = animal.poses[list(inspirations)]
+        except Exception as e:
+            mrich.error(e)
+            mrich.error(f"Could not find get {inspirations=}")
+            continue
+
+        if not reference:
+
+            # one placement against each inspiration's protein conformation
+            for pose in inspiration_poses:
+
+                # all info needed for placement
+                data.append(
+                    dict(
+                        compound=compound,
+                        reference=pose,
+                        inspirations=inspiration_poses,
+                    )
+                )
+
+                # debug output
+                if debug:
+                    mrich.h3("Placement")
+                    mrich.var("smiles", smiles)
+                    mrich.var("inchikey", inchikey)
+                    mrich.var("compound", compound)
+                    mrich.var("protein", pose.alias)
+                    mrich.var("inspirations", inspiration_poses.aliases)
+
+        else:
+
+            reference_pose = animal.poses[reference]
 
             # all info needed for placement
             data.append(
                 dict(
                     compound=compound,
-                    reference=pose,
+                    reference=reference_pose,
                     inspirations=inspiration_poses,
                 )
             )

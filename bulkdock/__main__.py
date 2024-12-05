@@ -3,6 +3,7 @@ import typer
 from .bulkdock import BulkDock
 from typing import Optional
 from typing_extensions import Annotated
+from .config import VARIABLES
 
 HELP = """
 💪 BulkDock: Manage batches of Fragmenstein restrained protein-ligand docking jobs
@@ -67,6 +68,12 @@ def place(
     split: int = 1_000,
     stagger: int = 0.25,
     dependency: int = 0,
+    reference: Annotated[
+        str,
+        typer.Option(
+            help="Name of reference pose, if none is specified will ensemble dock against inspirations"
+        ),
+    ] = "",
 ):
     """Start a placement job.
 
@@ -79,18 +86,27 @@ def place(
     # :param split: split the input file into batches of this size
 
     engine.submit_placement_jobs(
-        target, file, split=split, stagger=stagger, dependency=dependency
+        target,
+        file,
+        split=split,
+        stagger=stagger,
+        dependency=dependency,
+        reference=reference,
     )
 
 
 @app.command()
-def configure(variable: str, value: str):
+def configure(
+    variable: Annotated[
+        str, typer.Argument(help=f"variable to configure, options are: {VARIABLES}")
+    ],
+    value: str,
+):
     """Configure"""
+
     mrich.h2("BulkDock.configure")
     mrich.var("variable", variable)
     mrich.var("value", value)
-    from .config import VARIABLES
-
     assert variable in VARIABLES
     engine.set_config_value(variable, value)
 

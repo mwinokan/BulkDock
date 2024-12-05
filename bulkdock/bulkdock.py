@@ -159,6 +159,7 @@ class BulkDock:
         split: int = 6_000,
         stagger: float = 0.5,
         dependency: str | None = None,
+        reference: str | None = None,
     ):
 
         mrich.h2("BulkDock.submit_placement_jobs")
@@ -166,6 +167,8 @@ class BulkDock:
         mrich.var("infile", infile)
         mrich.var("split", split)
         mrich.var("stagger", stagger)
+        mrich.var("dependency", dependency)
+        mrich.var("reference", reference)
 
         import os
         import subprocess
@@ -189,6 +192,8 @@ class BulkDock:
         assert (
             "SLURM_PYTHON_SCRIPT" in self.config
         ), "variable SLURM_PYTHON_SCRIPT not configured"
+
+        target = Path(target).name
 
         ### SPLIT INPUT
 
@@ -258,6 +263,9 @@ class BulkDock:
                 str(csv_path.resolve()),
             ]
 
+            if reference:
+                commands.append(f"--reference {reference}")
+
             x = subprocess.run(
                 commands, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
@@ -318,7 +326,9 @@ class BulkDock:
         job_id = int(x.stdout.decode().strip().split()[-1])
         mrich.success("Submitted combine job", job_id, f'"{job_name}"')
 
-    def place(self, target: str, file: str, debug: bool = False):
+    def place(
+        self, target: str, file: str, debug: bool = False, reference: str | None = None
+    ):
 
         mrich.h3("BulkDock.place")
 
@@ -341,6 +351,7 @@ class BulkDock:
             animal=animal,
             file=csv_path,
             debug=debug,
+            reference=reference,
         )
 
         SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", None)
@@ -532,40 +543,51 @@ class BulkDock:
 
             new_pose_ids = set()
 
-            for pose in mrich.track(poses, prefix="Filtering poses"):
+            for i, pose in mrich.track(
+                enumerate(poses), prefix="Filtering poses", total=len(poses)
+            ):
+
+                mrich.set_progress_field("progress", f"{i+1}/{len(poses)}")
+                mrich.set_progress_field("ok", len(new_pose_ids))
 
                 if max_energy_score and pose.energy_score > max_energy_score:
                     if debug:
                         mrich.debug(
-                            f"Filtered out {pose} due to {pose.energy_score=:.3f} <= {max_energy_score}:"
+                            f"Filtered out {pose} due to {pose.energy_score=:.3f} > {max_energy_score}:"
                         )
                     continue
 
                 if max_distance_score and pose.distance_score > max_distance_score:
                     if debug:
                         mrich.debug(
-                            f"Filtered out {pose} due to {pose.distance_score=:.3f} <= {max_distance_score}:"
+                            f"Filtered out {pose} due to {pose.distance_score=:.3f} > {max_distance_score}:"
                         )
                     continue
 
-                if (
-                    require_outcome
-                    and pose.metadata["fragmenstein_outcome"] != require_outcome
-                ):
+                outcome = pose.metadata["fragmenstein_outcome"]
+                if isinstance(outcome, list):
+                    outcome = outcome[0]
+                # .removeprefix("['").removesuffix("']")
+
+                if require_outcome and outcome != require_outcome:
                     if debug:
                         mrich.debug(
-                            f"Filtered out {pose} due to fragmenstein_outcome != {require_outcome}:"
+                            f"Filtered out {pose} due to fragmenstein_outcome={outcome} != {require_outcome}:"
                         )
                     continue
 
                 if pose_filter_methods:
-                    for method in pose_filter_methods:
-                        func = getattr(pose, method)
+                    for filter_method in pose_filter_methods:
+                        func = getattr(pose, filter_method)
                         passed = func(debug=debug)
                         if not passed:
                             if debug:
-                                mrich.debug(f"Filtered out {pose} due to {method}:")
+                                mrich.debug(
+                                    f"Filtered out {pose} due to {filter_method}:"
+                                )
                             continue
+
+                mrich.success(pose, "OK")
 
                 new_pose_ids.add(pose.id)
 
