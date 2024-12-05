@@ -136,7 +136,7 @@ def combine(csv_file: str):
 
 
 @app.command()
-def collate(outname: str, target: str, json_path: str, tag: str = "Fragmenstein"):
+def collate(outname: str, target: str, json_path: str, tag: str = "Fragmenstein placed"):
 
     import json
     from pathlib import Path
