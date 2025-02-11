@@ -2,7 +2,7 @@ import mrich
 import subprocess
 from rich.table import Table
 from rich.panel import Panel
-from richqueue.slurm import combined_df
+from richqueue.slurm import combined_df, get_user
 from richqueue.table import color_by_state, COLUMNS
 from datetime import timedelta
 from richqueue.tools import human_timedelta  # , human_timedelta_to_seconds
@@ -10,7 +10,9 @@ from richqueue.tools import human_timedelta  # , human_timedelta_to_seconds
 
 def status():
 
-    df = combined_df()
+    user = get_user()
+
+    df = combined_df(user=user)
 
     # filter dataframe
     df = df[df["name"].str.startswith("BulkDock")]
