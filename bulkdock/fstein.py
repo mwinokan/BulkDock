@@ -79,16 +79,16 @@ def fragmenstein_place(
 
         mrich.h3("Placement Result")
 
-        mrich.var("name", result["name"])
-        mrich.var("error", result["error"])
-        mrich.var("mode", result["mode"])
-        mrich.var("∆∆G", result["∆∆G"])
-        mrich.var("comRMSD", result["comRMSD"])
-        mrich.var("runtime", result["runtime"])
-        mrich.var("outcome", result["outcome"])
+        mrich.var("name", result.get("name", "N/A"))
+        mrich.var("error", result.get("error", "N/A"))
+        mrich.var("mode", result.get("mode", "N/A"))
+        mrich.var("∆∆G", result.get("∆∆G", "N/A"))
+        mrich.var("comRMSD", result.get("comRMSD", "N/A"))
+        mrich.var("runtime", result.get("runtime", "N/A"))
+        mrich.var("outcome", result.get("outcome", "N/A"))
 
         # write some mols to files for debugging
-        if write_hit_mols:
+        if write_hit_mols and "hit_mols" in result:
             mols_to_sdf(result["hit_mols"], subdir / "hit_mols.sdf")
 
         break
@@ -99,10 +99,10 @@ def fragmenstein_place(
 
     if mol_path.exists():
         metadata["scratch_subdir"] = str(subdir.resolve())
-        metadata["fragmenstein_runtime"] = result["runtime"]
-        metadata["fragmenstein_outcome"] = result["outcome"]
-        metadata["fragmenstein_mode"] = result["mode"]
-        metadata["fragmenstein_error"] = result["error"]
+        metadata["fragmenstein_runtime"] = result.get("runtime", "N/A")
+        metadata["fragmenstein_outcome"] = result.get("outcome", "N/A")
+        metadata["fragmenstein_mode"] = result.get("mode", "N/A")
+        metadata["fragmenstein_error"] = result.get("error", "N/A")
 
         pose_id = animal.register_pose(
             compound=compound,
@@ -111,8 +111,8 @@ def fragmenstein_place(
             reference=reference,
             inspirations=inspirations,
             tags=["Fragmenstein placed"],
-            energy_score=result["∆∆G"],
-            distance_score=result["comRMSD"],
+            energy_score=result.get("∆∆G", "N/A"),
+            distance_score=result.get("comRMSD", "N/A"),
             metadata=metadata,
             load_mol=True,
             commit=True,

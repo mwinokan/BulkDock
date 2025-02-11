@@ -147,7 +147,9 @@ def combine(csv_file: str):
 
 
 @app.command()
-def collate(outname: str, target: str, json_path: str, tag: str = "Fragmenstein placed"):
+def collate(
+    outname: str, target: str, json_path: str, tag: str = "Fragmenstein placed"
+):
 
     import json
     from pathlib import Path
@@ -172,16 +174,16 @@ def collate(outname: str, target: str, json_path: str, tag: str = "Fragmenstein 
 
     mrich.var("job_ids", job_ids)
 
-    tagged_poses = animal.poses(tag=tag) 
+    tagged_poses = animal.poses(tag=tag)
 
     mrich.var("tagged_poses", tagged_poses)
 
     pose_ids = set()
-    for i,pose in mrich.track(enumerate(tagged_poses), prefix="Getting poses"):
+    for i, pose in mrich.track(enumerate(tagged_poses), prefix="Getting poses"):
 
         mrich.set_progress_field("progress", f"{i+1}/{len(tagged_poses)}")
         mrich.set_progress_field("found", len(pose_ids))
-        
+
         job_id = int(Path(pose.path).parent.parent.name)
 
         if job_id not in job_ids:

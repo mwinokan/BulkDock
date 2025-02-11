@@ -427,8 +427,8 @@ class BulkDock:
             if pose_id:
                 pose_ids.add(pose_id)
 
-        mrich.debug("Committing changes...")
-        animal.db.commit()
+        # mrich.debug("Committing changes...")
+        # animal.db.commit()
 
         if pose_ids:
 
@@ -657,7 +657,7 @@ class BulkDock:
             if isinstance(value, Path):
                 config[key] = str(value.resolve())
 
-        json.dump(config, open(self.config_path, "wt"))
+        json.dump(config, open(self.config_path, "wt"), indent=2)
 
     def set_config_value(self, variable: str, value: str):
         from .config import VARIABLES
