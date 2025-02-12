@@ -109,7 +109,7 @@ class BulkDock:
 
     ### HIPPO
 
-    def get_animal(self, target: str):
+    def get_animal(self, target: str, update_legacy: bool = True):
 
         try:
             animal_path = self.get_animal_path(target)
@@ -127,7 +127,7 @@ class BulkDock:
             )
             return None
 
-        animal = hippo.HIPPO(f"{target}_bulkdock", animal_path)
+        animal = hippo.HIPPO(f"{target}_bulkdock", animal_path, update_legacy=update_legacy)
 
         return animal
 
@@ -275,9 +275,14 @@ class BulkDock:
                 mrich.print(x.stderr)
                 raise Exception(
                     f"Could not submit slurm job with command: {' '.join(commands)}"
-                )
+                )            
 
             job_id = int(x.stdout.decode().strip().split()[-1])
+            
+            with open("sbatch.log", "ta") as file:
+                file.write(f"# {job_id}\n")
+                file.write(" ".join(commands))
+                file.write("\n")
 
             job_ids.append(job_id)
 
@@ -631,6 +636,8 @@ class BulkDock:
             generate_pdbs=generate_pdbs,
             name_col="id",
         )
+
+        poses.add_tag("BulkDock Fragalysis export")
 
         if generate_pdbs:
             mrich.success(f"Created Fragalysis-compatible SDF and complex PDBs")
