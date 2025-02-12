@@ -328,6 +328,11 @@ class BulkDock:
                 f"Could not submit slurm job with command: {' '.join(commands)}"
             )
 
+        with open("sbatch.log", "ta") as file:
+            file.write(f"# {job_id}\n")
+            file.write(" ".join(commands))
+            file.write("\n")
+
         job_id = int(x.stdout.decode().strip().split()[-1])
         mrich.success("Submitted combine job", job_id, f'"{job_name}"')
 
