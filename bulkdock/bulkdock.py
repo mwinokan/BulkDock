@@ -1,6 +1,7 @@
 import mrich
 from pathlib import Path
 import json
+from rdkit import Chem
 
 
 class BulkDock:

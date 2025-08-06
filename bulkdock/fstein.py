@@ -10,6 +10,7 @@ from fragmenstein.laboratory.validator import place_input_validator
 
 from pandas import DataFrame
 from .io import mols_to_sdf
+from rdkit import Chem
 
 
 def fragmenstein_place(
