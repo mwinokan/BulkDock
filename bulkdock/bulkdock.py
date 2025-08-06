@@ -391,7 +391,12 @@ class BulkDock:
 
         mrich.var("job_scratch_dir", job_scratch_dir)
 
-        pose_ids = set()
+        count = 0
+
+        outname = csv_path.name.replace(".csv", f"_{SLURM_JOB_ID}.sdf")
+        outfile = self.get_outfile_path(outname)
+
+        writer = Chem.SDWriter(str(outfile.resolve()))
 
         for i, d in enumerate(data):
 
@@ -424,7 +429,7 @@ class BulkDock:
             )
             mrich.var("protein_path", protein_path)
 
-            pose_id = fragmenstein_place(
+            result = fragmenstein_place(
                 animal=animal,
                 scratch_dir=job_scratch_dir,
                 compound=compound,
@@ -432,22 +437,15 @@ class BulkDock:
                 inspirations=inspirations,
                 protein_path=protein_path,
                 metadata=metadata,
+                writer=writer,
             )
 
-            if pose_id:
-                pose_ids.add(pose_id)
+            if result:
+                count += 1
 
-        # mrich.debug("Committing changes...")
-        # animal.db.commit()
+        writer.close()
 
-        if pose_ids:
-
-            outname = csv_path.name.replace(".csv", f"_{SLURM_JOB_ID}.sdf")
-            outfile = self.get_outfile_path(outname)
-
-            poses = animal.poses[pose_ids]
-            poses.write_sdf(outfile, name_col="id")
-
+        if count:
             mrich.h1(f"Determined {len(poses)} Poses\n{outfile}")
             return outfile
 

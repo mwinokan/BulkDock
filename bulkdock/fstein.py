@@ -20,7 +20,7 @@ def fragmenstein_place(
     reference: "Pose",
     inspirations: "PoseSet",
     protein_path: "Path",
-    # ref_hits_path: "Path",
+    writer: "SDWriter",
     n_cores: int = 8,
     n_retries: int = 3,
     timeout: int = 300,
@@ -98,33 +98,28 @@ def fragmenstein_place(
     mol_path = subdir / f"{name}.minimised.mol"
 
     if mol_path.exists():
-        metadata["scratch_subdir"] = str(subdir.resolve())
-        metadata["fragmenstein_runtime"] = result.get("runtime", "N/A")
-        metadata["fragmenstein_outcome"] = result.get("outcome", "N/A")
-        metadata["fragmenstein_mode"] = result.get("mode", "N/A")
-        metadata["fragmenstein_error"] = result.get("error", "N/A")
 
-        pose_id = animal.register_pose(
-            compound=compound,
-            target=1,
-            path=mol_path,
-            reference=reference,
-            inspirations=inspirations,
-            tags=["Fragmenstein placed"],
-            energy_score=result.get("∆∆G", "N/A"),
-            distance_score=result.get("comRMSD", "N/A"),
-            metadata=metadata,
-            load_mol=True,
-            commit=True,
-            return_pose=False,
-        )
+        mol = Chem.Mol(result["min_binary"])
 
-        mrich.success(f"Registered Pose {pose_id}")
+        mol.SetProp("_Name", name)
+        mol.SetProp("compound_id", compound.id)
+        mol.SetProp("target_id", 1)
+        mol.SetProp("reference_id", reference.id)
+        mol.SetProp("inspiration_ids", inspirations.ids)
+        mol.SetProp("energy_score", result.get("∆∆G", "N/A"))
+        mol.SetProp("distance_score", result.get("comRMSD", "N/A"))
+        mol.SetProp("path", mol_path)
+        mol.SetProp("scratch_subdir", str(subdir.resolve()))
+        mol.SetProp("fragmenstein_runtime", result.get("runtime", "N/A"))
+        mol.SetProp("fragmenstein_outcome", result.get("outcome", "N/A"))
+        mol.SetProp("fragmenstein_mode", result.get("mode", "N/A"))
+        mol.SetProp("fragmenstein_error", result.get("error", "N/A"))
 
-        if not isinstance(pose_id, int):
-            return pose_id.id
-        else:
-            return pose_id
+        writer.write(mol)
+
+        mrich.success(f"Wrote data to SDF")
+
+        return True
 
     else:
 
