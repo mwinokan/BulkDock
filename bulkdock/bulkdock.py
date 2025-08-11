@@ -414,9 +414,7 @@ class BulkDock:
 
             mrich.var("compound", compound)
             mrich.var("reference", reference)
-            mrich.var("inspirations", inspirations.aliases)
-
-            create_inspiration_sdf: bool = False
+            mrich.var("inspirations", [p.alias for p in inspirations])
 
             metadata = dict(
                 SLURM_JOB_ID=SLURM_JOB_ID,
@@ -424,10 +422,11 @@ class BulkDock:
                 csv_name=csv_path.name,
             )
 
-            # create ref hits file
-            if create_inspiration_sdf:
-                ref_hits_path = self.create_inspiration_sdf(target, inspirations)
-                mrich.var("ref_hits_path", ref_hits_path)
+            # create_inspiration_sdf: bool = False
+            # # create ref hits file (Not working with inspirations: list[Pose])
+            # if create_inspiration_sdf:
+            #     ref_hits_path = self.create_inspiration_sdf(target, inspirations)
+            #     mrich.var("ref_hits_path", ref_hits_path)
 
             # create protein file
             protein_path = reference.path.replace("_hippo.pdb", ".pdb").replace(
