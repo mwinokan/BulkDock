@@ -370,6 +370,8 @@ class BulkDock:
             reference=reference,
         )
 
+        animal.db.commit()
+
         SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", None)
         mrich.var("SLURM_JOB_ID", SLURM_JOB_ID)
 
