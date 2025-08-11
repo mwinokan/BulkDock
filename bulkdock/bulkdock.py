@@ -354,9 +354,14 @@ class BulkDock:
 
         assert csv_path.exists()
 
+        if debug:
+            mrich.debug("get_animal")
         animal = self.get_animal(target)
 
-        assert animal, "Could not initialise hippo.HIPPO animal object"
+        # assert animal, "Could not initialise hippo.HIPPO animal object"
+
+        if debug:
+            mrich.debug("parse_input_csv")
 
         data = parse_input_csv(
             animal=animal,
