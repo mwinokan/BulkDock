@@ -101,13 +101,13 @@ def parse_input_csv(
         inspirations = [i for i in inspirations if isinstance(i, str) and i]
 
         inspiration_poses = list()
-
         for alias in inspirations:
             pose_id = alias_lookup.get(alias, None)
             if not pose_id:
                 mrich.error(f"Could not find inspiration with {alias=}")
                 continue
             pose = pose_lookup[pose_id]
+            inspiration_poses.append(pose)
 
         if not inspiration_poses:
             mrich.error(f"No inspirations. {i=}, {smiles=}")
@@ -134,7 +134,7 @@ def parse_input_csv(
                     mrich.var("inchikey", inchikey)
                     mrich.var("compound", compound)
                     mrich.var("protein", pose.alias)
-                    mrich.var("inspirations", inspiration_poses.aliases)
+                    mrich.var("inspirations", [p.alias for p in inspiration_poses])
 
         else:
 
@@ -156,7 +156,7 @@ def parse_input_csv(
                 mrich.var("inchikey", inchikey)
                 mrich.var("compound", compound)
                 mrich.var("protein", pose.alias)
-                mrich.var("inspirations", inspiration_poses.aliases)
+                mrich.var("inspirations", [p.alias for p in inspiration_poses])
 
     return data
 

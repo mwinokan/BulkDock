@@ -19,7 +19,7 @@ def fragmenstein_place(
     scratch_dir: "Path",
     compound: "Compound",
     reference: "Pose",
-    inspirations: "PoseSet",
+    inspirations: "list[Pose]",
     protein_path: "Path",
     writer: "SDWriter",
     n_cores: int = 8,
@@ -106,7 +106,7 @@ def fragmenstein_place(
         mol.SetProp("compound_id", str(compound.id))
         mol.SetProp("target_id", str(1))
         mol.SetProp("reference_id", str(reference.id))
-        mol.SetProp("inspiration_ids", str(inspirations.ids))
+        mol.SetProp("inspiration_ids", str([p.id for p in inspirations]))
         mol.SetProp("energy_score", str(result.get("∆∆G", "N/A")))
         mol.SetProp("distance_score", str(result.get("comRMSD", "N/A")))
         mol.SetProp("path", str(mol_path))
@@ -165,7 +165,7 @@ def setup_wictor_laboratory(
 
 
 def create_fragmenstein_queries_df(
-    *, compound: "Compound", reference: "Pose", inspirations: "PoseSet"
+    *, compound: "Compound", reference: "Pose", inspirations: "list[Pose]"
 ):
 
     return DataFrame(
