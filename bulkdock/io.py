@@ -60,15 +60,29 @@ def parse_input_csv(
     df = read_csv(file)
 
     assert "smiles" in df.columns
+    
+    mrich.var("len(df)", len(df))
 
     mrich.h1("Compound Registration")
     values = animal.register_compounds(smiles=df["smiles"].values)
 
     inchikeys = [inchikey for inchikey, smiles in values]
 
-    data = []
+    hits = animal.poses(tag="hits")
+    mrich.var("hits", len(hits), unit="Poses")
 
-    mrich.h1("Placements")
+    mrich.debug("get_pose_alias_id_dict()")
+    alias_lookup = animal.db.get_pose_alias_id_dict(hits)
+    mrich.debug("get_pose_id_obj_dict()")
+    pose_lookup = animal.db.get_pose_id_obj_dict(hits)
+    mrich.debug("get_compound_inchikey_id_dict()")
+    inchikey_lookup = animal.db.get_compound_inchikey_id_dict(inchikeys)
+    mrich.debug("get_compound_id_obj_dict()")
+    compound_lookup = animal.db.get_compound_id_obj_dict(animal.compounds[list(inchikey_lookup.values())])
+
+    mrich.h1("Enumerate placement tasks")
+    
+    data = []
 
     for (i, row), inchikey in zip(df.iterrows(), inchikeys):
 
@@ -76,8 +90,8 @@ def parse_input_csv(
         smiles = row.smiles
         inspirations = row.values[1:]
 
-        compound = animal.db.get_compound(inchikey=inchikey)
-        assert compound
+        compound_id = inchikey_lookup[inchikey]
+        compound = compound_lookup[compound_id]
 
         # debug output
         if debug:
@@ -86,11 +100,17 @@ def parse_input_csv(
 
         inspirations = [i for i in inspirations if isinstance(i, str) and i]
 
-        try:
-            inspiration_poses = animal.poses[list(inspirations)]
-        except Exception as e:
-            mrich.error(e)
-            mrich.error(f"Could not find get {inspirations=}")
+        inspiration_poses = list()
+
+        for alias in inspirations:
+            pose_id = alias_lookup.get(alias, None)
+            if not pose_id:
+                mrich.error(f"Could not find inspiration with {alias=}")
+                continue
+            pose = pose_lookup[pose_id]
+
+        if not inspiration_poses:
+            mrich.error(f"No inspirations. {i=}, {smiles=}")
             continue
 
         if not reference:
