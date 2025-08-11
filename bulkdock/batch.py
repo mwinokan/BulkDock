@@ -23,13 +23,15 @@ def place(
             help="Name of reference pose, if none is specified will ensemble dock against inspirations"
         ),
     ] = "",
+    debug: bool = False,
 ):
     """Run Bulkdock.place"""
     mrich.h3("bulkdock.batch.place")
     mrich.var("target", target)
     mrich.var("file", file)
     mrich.var("reference", reference)
-    engine.place(target, file, reference=reference)
+    mrich.var("debug", debug)
+    engine.place(target, file, reference=reference, debug=debug)
 
 
 @app.command()
