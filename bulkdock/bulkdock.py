@@ -403,6 +403,7 @@ class BulkDock:
 
         outname = csv_path.name.replace(".csv", f"_{SLURM_JOB_ID}.sdf")
         outfile = self.get_outfile_path(outname)
+        mrich.var("outfile", outfile)
 
         writer = Chem.SDWriter(str(outfile.resolve()))
 
@@ -453,7 +454,7 @@ class BulkDock:
         writer.close()
 
         if count:
-            mrich.h1(f"Determined {len(poses)} Poses\n{outfile}")
+            mrich.h1(f"Determined {count} Poses\n{outfile}")
             return outfile
 
         else:
