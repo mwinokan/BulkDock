@@ -145,8 +145,11 @@ def combine(csv_file: str):
 
     out_path = engine.get_outfile_path(f"{key}_combined.sdf")
 
-    sdf_combine(files, out_path)
+    mrich.var("out_path", out_path)
+    mrich.var("files", files)
 
+    # sdf_combine(files, out_path)
+    raise NotImplementedError
 
 @app.command()
 def collate(
