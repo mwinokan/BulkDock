@@ -150,14 +150,18 @@ def combine(target: str, csv_file: str):
     for file in files:
 
         mrich.bold(file)
-        animal.load_sdf(
-            target=target, 
-            path=file, 
-            inspiration_col="inspiration_ids", 
-            reference_col="reference_id",
-            compound_tags = [key],
-            pose_tags = ["fragmenstein_placed", key],
-        )
+        try:
+            animal.load_sdf(
+                target=target, 
+                path=file, 
+                inspiration_col="inspiration_ids", 
+                reference_col="reference_id",
+                compound_tags = [key],
+                pose_tags = ["fragmenstein_placed", key],
+            )
+        except AssertionError:
+            mrich.error("Something wrong with", file)
+            continue
 
     mrich.success("Done")
 
