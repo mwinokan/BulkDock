@@ -149,7 +149,7 @@ def combine(target: str, csv_file: str):
 
     for file in files:
 
-        mrich.h3(file)
+        mrich.bold(file)
         animal.load_sdf(
             target=target.name, 
             path=file, 
