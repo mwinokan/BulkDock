@@ -155,7 +155,8 @@ def combine(target: str, csv_file: str):
             path=file, 
             inspiration_col="inspiration_ids", 
             reference_col="reference_id",
-            pose_tags = ["fragmenstein_placed"],
+            compound_tags = [key],
+            pose_tags = ["fragmenstein_placed", key],
         )
 
     mrich.success("Done")
