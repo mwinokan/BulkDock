@@ -35,7 +35,7 @@ def place(
 
 
 @app.command()
-def combine(csv_file: str):
+def combine(target: str, csv_file: str):
     """Combine split SDF outputs from placement jobs"""
 
     import subprocess
@@ -143,13 +143,22 @@ def combine(csv_file: str):
 
         files.append(row["file"])
 
-    out_path = engine.get_outfile_path(f"{key}_combined.sdf")
-
-    mrich.var("out_path", out_path)
     mrich.var("files", files)
+    
+    animal = engine.get_animal(target)
 
-    # sdf_combine(files, out_path)
-    raise NotImplementedError
+    for file in files:
+
+        mrich.h3(file)
+        animal.load_sdf(
+            target=target.name, 
+            path=file, 
+            inspiration_col="inspiration_ids", 
+            reference_col="reference_id",
+            pose_tags = ["fragmenstein_placed"],
+        )
+
+    mrich.success("Done")
 
 @app.command()
 def collate(
