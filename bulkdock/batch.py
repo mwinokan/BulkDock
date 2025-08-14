@@ -151,7 +151,7 @@ def combine(target: str, csv_file: str):
 
         mrich.bold(file)
         animal.load_sdf(
-            target=target.name, 
+            target=target, 
             path=file, 
             inspiration_col="inspiration_ids", 
             reference_col="reference_id",
