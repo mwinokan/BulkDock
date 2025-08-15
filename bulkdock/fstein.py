@@ -100,12 +100,13 @@ def fragmenstein_place(
 
     if mol_path.exists():
 
-        mol = result.get("min_binary")
-        mol = Chem.Mol(mol)
+        mol_bytes = result.get("min_binary")
 
-        if not mol:
+        if not mol_bytes:
             mrich.error("no 'min_binary' in result")
             return False
+
+        mol = Chem.Mol(mol_bytes)
 
         mol.SetProp("_Name", name)
         mol.SetProp("compound_id", str(compound.id))
