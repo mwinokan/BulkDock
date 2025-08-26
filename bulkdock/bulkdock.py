@@ -315,6 +315,7 @@ class BulkDock:
             template_script,
             "-m bulkdock.batch",
             "combine",
+            target,
             infile,
         ]
 
