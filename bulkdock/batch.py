@@ -35,7 +35,16 @@ def place(
 
 
 @app.command()
-def combine(target: str, csv_file: str):
+def combine(
+    target: str, 
+    csv_file: str,
+    batch_size: Annotated[
+        int,
+        typer.Option(
+            help="Select one of multiple batch sizes"
+        ),
+    ] = "",
+):
     """Combine split SDF outputs from placement jobs"""
 
     import subprocess
@@ -107,9 +116,12 @@ def combine(target: str, csv_file: str):
 
     mrich.print(df.drop(columns=["file"]))
 
+    if batch_size:
+        df = df[df["batch_size"]==batch_size]
+
     batch_sizes = df["batch_size"].to_numpy()
     if not (batch_sizes[0] == batch_sizes).all():
-        raise NotImplementedError("Not currently supporting multiple batch sizes")
+        raise NotImplementedError("Not currently supporting multiple batch sizes. Re-run with batch-size option")
 
     files = []
 
