@@ -26,6 +26,7 @@ def status():
 def export(
     target: str,
     tag: str,
+    best_by_compound: bool = False,
     generate_pdbs: bool = False,
     submitter_name: str = None,
     submitter_institution: str = None,
@@ -46,6 +47,7 @@ def export(
     engine.export(
         target=target,
         tag=tag,
+        best_by_compound=best_by_compound,
         generate_pdbs=generate_pdbs,
         submitter_name=submitter_name,
         submitter_institution=submitter_institution,

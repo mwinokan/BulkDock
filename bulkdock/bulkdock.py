@@ -477,6 +477,7 @@ class BulkDock:
         *,
         target: str,
         tag: str,
+        best_by_compound: bool = False,
         submitter_name: str | None = None,
         submitter_institution: str | None = None,
         submitter_email: str | None = None,
@@ -527,6 +528,11 @@ class BulkDock:
         mrich.print("fragmenstein_outcome == 'acceptable'", poses)
         
         # GET BEST POSE PER COMPOUND?
+
+        if best_by_compound:
+            poses = poses.get_best_placed_poses_per_compound()
+            mrich.print("best pose by compound", poses)
+
 
         # FILTER 
 
