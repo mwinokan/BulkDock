@@ -526,15 +526,30 @@ class BulkDock:
 
         poses = poses.get_by_metadata(key="fragmenstein_outcome", value="acceptable")
         mrich.print("fragmenstein_outcome == 'acceptable'", poses)
+
+        # OTHER FILTER METHODS
+
+        if pose_filter_methods:
+            for filter_method in pose_filter_methods:
+                pose_ids = set()
+                for pose in mrich.track(poses):
+                    func = getattr(pose, filter_method)
+                    passed = func(debug=debug)
+                    if not passed:
+                        if debug:
+                            mrich.debug(
+                                f"Filtered out {pose} due to {filter_method}:"
+                            )
+                        continue
+                    pose_ids.add(pose.id)
+                poses = animal.poses[pose_ids]
+                mrich.print(f"post-{filter_method}", poses)
         
         # GET BEST POSE PER COMPOUND?
 
         if best_by_compound:
             poses = poses.get_best_placed_poses_per_compound()
             mrich.print("best pose by compound", poses)
-
-
-        # FILTER 
 
         # raise NotImplementedError
 
