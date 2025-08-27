@@ -500,7 +500,15 @@ class BulkDock:
         mrich.var("require_outcome", require_outcome)
         mrich.var("output", output)
 
-        raise NotImplementedError
+        animal = self.get_animal(target=target)
+
+        poses = animal.poses(tag=tag)
+
+        assert poses
+
+        mrich.print(poses)
+
+        # raise NotImplementedError
 
         # inpath = self.get_outfile_path(sdf_file)
 
