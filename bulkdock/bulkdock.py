@@ -472,12 +472,11 @@ class BulkDock:
 
         return sdf_path
 
-    def to_fragalysis(
+    def export(
         self,
         *,
         target: str,
         tag: str,
-        method: str,
         submitter_name: str | None = None,
         submitter_institution: str | None = None,
         submitter_email: str | None = None,
@@ -491,7 +490,7 @@ class BulkDock:
         debug: bool = True,
     ):
 
-        mrich.h3(f"BulkDock.to_fragalysis")
+        mrich.h3(f"BulkDock.export")
 
         mrich.var("target", target)
         mrich.var("tag", tag)
