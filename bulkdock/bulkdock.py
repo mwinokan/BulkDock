@@ -502,7 +502,8 @@ class BulkDock:
 
         animal = self.get_animal(target=target)
 
-        poses = animal.poses(tag=tag)
+        with mrich.loading(f"getting poses tagged {tag}"):
+            poses = animal.poses(tag=tag)
 
         assert poses
 
