@@ -514,17 +514,18 @@ class BulkDock:
         # FILTER BY DISTANCE_SCORE
 
         poses = poses.filter(key="distance_score", operator="<=", value="2.0")
-        mrich.print("distance_score < 2.0", poses)
+        mrich.print("distance_score <= 2.0", poses)
 
         # FILTER BY ENERGY_SCORE
 
         poses = poses.filter(key="energy_score", operator="<=", value="0.0")
-        mrich.print("energy_score < 0.0", poses)
-
-        # FILTER BY ENERGY SCORE
+        mrich.print("energy_score <= 0.0", poses)
 
         # FILTER BY OUTCOME?
 
+        poses = poses.get_by_metadata(key="fragmenstein_outcome", value="acceptable")
+        mrich.print("fragmenstein_outcome == 'acceptable'", poses)
+        
         # GET BEST POSE PER COMPOUND?
 
         # FILTER 
