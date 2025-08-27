@@ -26,7 +26,6 @@ def status():
 def export(
     target: str,
     tag: str,
-    method: str,
     generate_pdbs: bool = False,
     submitter_name: str = None,
     submitter_institution: str = None,
@@ -44,10 +43,9 @@ def export(
     if posebusters:
         pose_filter_methods.append("posebusters")
 
-    engine.to_fragalysis(
+    engine.export(
         target=target,
         tag=tag,
-        method=method,
         generate_pdbs=generate_pdbs,
         submitter_name=submitter_name,
         submitter_institution=submitter_institution,
