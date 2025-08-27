@@ -502,12 +502,28 @@ class BulkDock:
 
         animal = self.get_animal(target=target)
 
+        # GET POSES
+
         with mrich.loading(f"getting poses tagged {tag}"):
             poses = animal.poses(tag=tag)
 
         assert poses
 
         mrich.print(poses)
+
+        # FILTER BY DISTANCE_SCORE
+
+        poses = poses.filter(key="distance_score", operator="<=", value="2.0")
+
+        mrich.print("distance_score < 2.0", poses)
+
+        # FILTER BY ENERGY SCORE
+
+        # FILTER BY OUTCOME?
+
+        # GET BEST POSE PER COMPOUND?
+
+        # FILTER 
 
         # raise NotImplementedError
 
