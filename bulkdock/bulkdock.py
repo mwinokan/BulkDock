@@ -514,8 +514,12 @@ class BulkDock:
         # FILTER BY DISTANCE_SCORE
 
         poses = poses.filter(key="distance_score", operator="<=", value="2.0")
-
         mrich.print("distance_score < 2.0", poses)
+
+        # FILTER BY ENERGY_SCORE
+
+        poses = poses.filter(key="energy_score", operator="<=", value="0.0")
+        mrich.print("energy_score < 0.0", poses)
 
         # FILTER BY ENERGY SCORE
 
