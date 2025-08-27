@@ -476,7 +476,7 @@ class BulkDock:
         self,
         *,
         target: str,
-        sdf_file: str,
+        tag: str,
         method: str,
         submitter_name: str | None = None,
         submitter_institution: str | None = None,
@@ -494,167 +494,170 @@ class BulkDock:
         mrich.h3(f"BulkDock.to_fragalysis")
 
         mrich.var("target", target)
+        mrich.var("tag", tag)
         mrich.var("generate_pdbs", generate_pdbs)
         mrich.var("max_energy_score", max_energy_score)
         mrich.var("max_distance_score", max_distance_score)
         mrich.var("require_outcome", require_outcome)
         mrich.var("output", output)
 
-        inpath = self.get_outfile_path(sdf_file)
+        raise NotImplementedError
 
-        assert inpath.exists(), f"Input SDF does not exist: {inpath}"
+        # inpath = self.get_outfile_path(sdf_file)
 
-        mrich.var("inpath", inpath)
+        # assert inpath.exists(), f"Input SDF does not exist: {inpath}"
 
-        # validate fragalysis header info
+        # mrich.var("inpath", inpath)
 
-        assert method, "method can not be empty"
-        mrich.var("method", method)
+        # # validate fragalysis header info
 
-        if not ref_url:
-            ref_url = self.fragalysis_export_ref_url
+        # assert method, "method can not be empty"
+        # mrich.var("method", method)
 
-        mrich.var("ref_url", ref_url)
+        # if not ref_url:
+        #     ref_url = self.fragalysis_export_ref_url
 
-        if not submitter_name:
-            submitter_name = self.fragalysis_export_submitter_name
+        # mrich.var("ref_url", ref_url)
 
-        mrich.var("submitter_name", submitter_name)
+        # if not submitter_name:
+        #     submitter_name = self.fragalysis_export_submitter_name
 
-        if not submitter_institution:
-            submitter_institution = self.fragalysis_export_submitter_institution
+        # mrich.var("submitter_name", submitter_name)
 
-        mrich.var("submitter_institution", submitter_institution)
+        # if not submitter_institution:
+        #     submitter_institution = self.fragalysis_export_submitter_institution
 
-        if not submitter_email:
-            submitter_email = self.fragalysis_export_submitter_email
+        # mrich.var("submitter_institution", submitter_institution)
 
-        mrich.var("submitter_email", submitter_email)
+        # if not submitter_email:
+        #     submitter_email = self.fragalysis_export_submitter_email
 
-        # get the animal
+        # mrich.var("submitter_email", submitter_email)
 
-        animal = self.get_animal(target=target)
+        # # get the animal
 
-        if not animal:
-            return
+        # animal = self.get_animal(target=target)
 
-        # get pose IDs from SDF file
+        # if not animal:
+        #     return
 
-        import subprocess
+        # # get pose IDs from SDF file
 
-        command = f'grep "RDKit          3D" -B1 {inpath.resolve()} --no-group-separator | grep -v "RDKit"'
+        # import subprocess
 
-        process = subprocess.run([command], shell=True, stdout=subprocess.PIPE)
+        # command = f'grep "RDKit          3D" -B1 {inpath.resolve()} --no-group-separator | grep -v "RDKit"'
 
-        pose_ids = set(int(i.strip()) for i in process.stdout.decode().split("\n") if i)
+        # process = subprocess.run([command], shell=True, stdout=subprocess.PIPE)
 
-        mrich.debug("pose_ids=", pose_ids)
+        # pose_ids = set(int(i.strip()) for i in process.stdout.decode().split("\n") if i)
 
-        mrich.var("#pose_ids", len(pose_ids))
+        # mrich.debug("pose_ids=", pose_ids)
 
-        poses = animal.poses[pose_ids]
+        # mrich.var("#pose_ids", len(pose_ids))
 
-        mrich.var("unfiltered poses", poses)
+        # poses = animal.poses[pose_ids]
 
-        if max_energy_score or max_distance_score or require_outcome:
+        # mrich.var("unfiltered poses", poses)
 
-            new_pose_ids = set()
+        # if max_energy_score or max_distance_score or require_outcome:
 
-            for i, pose in mrich.track(
-                enumerate(poses), prefix="Filtering poses", total=len(poses)
-            ):
+        #     new_pose_ids = set()
 
-                mrich.set_progress_field("progress", f"{i+1}/{len(poses)}")
-                mrich.set_progress_field("ok", len(new_pose_ids))
+        #     for i, pose in mrich.track(
+        #         enumerate(poses), prefix="Filtering poses", total=len(poses)
+        #     ):
 
-                if max_energy_score and pose.energy_score > max_energy_score:
-                    if debug:
-                        mrich.debug(
-                            f"Filtered out {pose} due to {pose.energy_score=:.3f} > {max_energy_score}:"
-                        )
-                    continue
+        #         mrich.set_progress_field("progress", f"{i+1}/{len(poses)}")
+        #         mrich.set_progress_field("ok", len(new_pose_ids))
 
-                if max_distance_score and pose.distance_score > max_distance_score:
-                    if debug:
-                        mrich.debug(
-                            f"Filtered out {pose} due to {pose.distance_score=:.3f} > {max_distance_score}:"
-                        )
-                    continue
+        #         if max_energy_score and pose.energy_score > max_energy_score:
+        #             if debug:
+        #                 mrich.debug(
+        #                     f"Filtered out {pose} due to {pose.energy_score=:.3f} > {max_energy_score}:"
+        #                 )
+        #             continue
 
-                outcome = pose.metadata["fragmenstein_outcome"]
-                if isinstance(outcome, list):
-                    outcome = outcome[0]
-                # .removeprefix("['").removesuffix("']")
+        #         if max_distance_score and pose.distance_score > max_distance_score:
+        #             if debug:
+        #                 mrich.debug(
+        #                     f"Filtered out {pose} due to {pose.distance_score=:.3f} > {max_distance_score}:"
+        #                 )
+        #             continue
 
-                if require_outcome and outcome != require_outcome:
-                    if debug:
-                        mrich.debug(
-                            f"Filtered out {pose} due to fragmenstein_outcome={outcome} != {require_outcome}:"
-                        )
-                    continue
+        #         outcome = pose.metadata["fragmenstein_outcome"]
+        #         if isinstance(outcome, list):
+        #             outcome = outcome[0]
+        #         # .removeprefix("['").removesuffix("']")
 
-                if pose_filter_methods:
-                    for filter_method in pose_filter_methods:
-                        func = getattr(pose, filter_method)
-                        passed = func(debug=debug)
-                        if not passed:
-                            if debug:
-                                mrich.debug(
-                                    f"Filtered out {pose} due to {filter_method}:"
-                                )
-                            continue
+        #         if require_outcome and outcome != require_outcome:
+        #             if debug:
+        #                 mrich.debug(
+        #                     f"Filtered out {pose} due to fragmenstein_outcome={outcome} != {require_outcome}:"
+        #                 )
+        #             continue
 
-                mrich.success(pose, "OK")
+        #         if pose_filter_methods:
+        #             for filter_method in pose_filter_methods:
+        #                 func = getattr(pose, filter_method)
+        #                 passed = func(debug=debug)
+        #                 if not passed:
+        #                     if debug:
+        #                         mrich.debug(
+        #                             f"Filtered out {pose} due to {filter_method}:"
+        #                         )
+        #                     continue
 
-                new_pose_ids.add(pose.id)
+        #         mrich.success(pose, "OK")
 
-            if not new_pose_ids:
-                mrich.error("No poses left after applying filters")
-                return None
+        #         new_pose_ids.add(pose.id)
 
-            poses = animal.poses[new_pose_ids]
+        #     if not new_pose_ids:
+        #         mrich.error("No poses left after applying filters")
+        #         return None
 
-        mrich.var("filtered poses", poses)
+        #     poses = animal.poses[new_pose_ids]
 
-        if output:
-            if not output.endswith(".sdf"):
-                output = f"{output}.sdf"
-            outpath = self.get_outfile_path(output)
+        # mrich.var("filtered poses", poses)
 
-        elif generate_pdbs:
-            outname = (
-                sdf_file.removesuffix(".sdf").removesuffix("_combined")
-                + "_fragalysis_wPDBs.sdf"
-            )
+        # if output:
+        #     if not output.endswith(".sdf"):
+        #         output = f"{output}.sdf"
+        #     outpath = self.get_outfile_path(output)
 
-            outpath = self.get_outfile_path(outname)
+        # elif generate_pdbs:
+        #     outname = (
+        #         sdf_file.removesuffix(".sdf").removesuffix("_combined")
+        #         + "_fragalysis_wPDBs.sdf"
+        #     )
 
-        else:
-            outname = (
-                sdf_file.removesuffix(".sdf").removesuffix("_combined")
-                + "_fragalysis.sdf"
-            )
-            outpath = self.get_outfile_path(outname)
+        #     outpath = self.get_outfile_path(outname)
 
-        mrich.var("outpath", outpath)
+        # else:
+        #     outname = (
+        #         sdf_file.removesuffix(".sdf").removesuffix("_combined")
+        #         + "_fragalysis.sdf"
+        #     )
+        #     outpath = self.get_outfile_path(outname)
 
-        poses.to_fragalysis(
-            str(outpath.resolve()),
-            ref_url=ref_url,
-            method=method,
-            submitter_name=submitter_name,
-            submitter_institution=submitter_institution,
-            submitter_email=submitter_email,
-            generate_pdbs=generate_pdbs,
-            name_col="id",
-        )
+        # mrich.var("outpath", outpath)
 
-        poses.add_tag("BulkDock Fragalysis export")
+        # poses.to_fragalysis(
+        #     str(outpath.resolve()),
+        #     ref_url=ref_url,
+        #     method=method,
+        #     submitter_name=submitter_name,
+        #     submitter_institution=submitter_institution,
+        #     submitter_email=submitter_email,
+        #     generate_pdbs=generate_pdbs,
+        #     name_col="id",
+        # )
 
-        if generate_pdbs:
-            mrich.success(f"Created Fragalysis-compatible SDF and complex PDBs")
-        else:
-            mrich.success(f"Created Fragalysis-compatible SDF")
+        # poses.add_tag("BulkDock Fragalysis export")
+
+        # if generate_pdbs:
+        #     mrich.success(f"Created Fragalysis-compatible SDF and complex PDBs")
+        # else:
+        #     mrich.success(f"Created Fragalysis-compatible SDF")
 
     ### CONFIG
 

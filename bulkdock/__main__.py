@@ -23,9 +23,9 @@ def status():
 
 
 @app.command()
-def to_fragalysis(
+def export(
     target: str,
-    sdf_file: str,
+    tag: str,
     method: str,
     generate_pdbs: bool = False,
     submitter_name: str = None,
@@ -46,7 +46,7 @@ def to_fragalysis(
 
     engine.to_fragalysis(
         target=target,
-        sdf_file=sdf_file,
+        tag=tag,
         method=method,
         generate_pdbs=generate_pdbs,
         submitter_name=submitter_name,
