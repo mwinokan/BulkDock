@@ -478,6 +478,7 @@ class BulkDock:
         target: str,
         tag: str,
         best_by_compound: bool = False,
+        metadata: bool = False,
         submitter_name: str | None = None,
         submitter_institution: str | None = None,
         submitter_email: str | None = None,
@@ -612,6 +613,7 @@ class BulkDock:
             submitter_email=submitter_email,
             generate_pdbs=generate_pdbs,
             name_col="id",
+            metadata=metadata,
         )
 
         poses.add_tag("BulkDock Fragalysis export")

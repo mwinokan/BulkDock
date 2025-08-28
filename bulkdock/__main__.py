@@ -27,6 +27,7 @@ def export(
     target: str,
     tag: str,
     best_by_compound: bool = False,
+    metadata: bool = False,
     generate_pdbs: bool = False,
     submitter_name: str = None,
     submitter_institution: str = None,
@@ -58,6 +59,7 @@ def export(
         require_outcome=require_outcome,
         pose_filter_methods=pose_filter_methods,
         output=output,
+        metadata=metadata,
     )
 
 
