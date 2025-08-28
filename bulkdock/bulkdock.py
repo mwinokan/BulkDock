@@ -560,7 +560,7 @@ class BulkDock:
         if pose_filter_methods:
             for filter_method in pose_filter_methods:
                 pose_ids = set()
-                for pose in mrich.track(poses, prefix="filter_method"):
+                for pose in mrich.track(poses, prefix=filter_method):
                     func = getattr(pose, filter_method)
                     passed = func(debug=debug)
                     if not passed:
