@@ -507,9 +507,6 @@ class BulkDock:
 
         # validate fragalysis header info
 
-        assert method, "method can not be empty"
-        mrich.var("method", method)
-
         if not ref_url:
             ref_url = self.fragalysis_export_ref_url
 
