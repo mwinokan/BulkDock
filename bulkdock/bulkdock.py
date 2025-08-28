@@ -244,6 +244,7 @@ class BulkDock:
                 job_name,
                 "--output=" f"{log_dir.resolve()}/%j.log",
                 "--error=" f"{log_dir.resolve()}/%j.log",
+                "--no-requeue",
             ]
 
             if dependency:
