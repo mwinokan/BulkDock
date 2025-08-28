@@ -609,7 +609,7 @@ class BulkDock:
         poses.to_fragalysis(
             str(outpath.resolve()),
             ref_url=ref_url,
-            method=method,
+            method=tag,
             submitter_name=submitter_name,
             submitter_institution=submitter_institution,
             submitter_email=submitter_email,
