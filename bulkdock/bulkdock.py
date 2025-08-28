@@ -493,6 +493,10 @@ class BulkDock:
 
         mrich.h3(f"BulkDock.export")
 
+        from hippo.tools import dt_hash
+
+        output = output or f"{tag}_{dt_hash()}" 
+
         mrich.var("target", target)
         mrich.var("tag", tag)
         mrich.var("generate_pdbs", generate_pdbs)
@@ -500,6 +504,33 @@ class BulkDock:
         mrich.var("max_distance_score", max_distance_score)
         mrich.var("require_outcome", require_outcome)
         mrich.var("output", output)
+
+        # validate fragalysis header info
+
+        assert method, "method can not be empty"
+        mrich.var("method", method)
+
+        if not ref_url:
+            ref_url = self.fragalysis_export_ref_url
+
+        mrich.var("ref_url", ref_url)
+
+        if not submitter_name:
+            submitter_name = self.fragalysis_export_submitter_name
+
+        mrich.var("submitter_name", submitter_name)
+
+        if not submitter_institution:
+            submitter_institution = self.fragalysis_export_submitter_institution
+
+        mrich.var("submitter_institution", submitter_institution)
+
+        if not submitter_email:
+            submitter_email = self.fragalysis_export_submitter_email
+
+        mrich.var("submitter_email", submitter_email)
+
+        # GET ANIMAL
 
         animal = self.get_animal(target=target)
 
@@ -551,163 +582,47 @@ class BulkDock:
             poses = poses.get_best_placed_poses_per_compound()
             mrich.print("best pose by compound", poses)
 
-        # raise NotImplementedError
+        #### OUTPUT
 
-        # inpath = self.get_outfile_path(sdf_file)
+        if output:
+            if not output.endswith(".sdf"):
+                output = f"{output}.sdf"
+            outpath = self.get_outfile_path(output)
 
-        # assert inpath.exists(), f"Input SDF does not exist: {inpath}"
+        elif generate_pdbs:
+            outname = (
+                sdf_file.removesuffix(".sdf").removesuffix("_combined")
+                + "_fragalysis_wPDBs.sdf"
+            )
 
-        # mrich.var("inpath", inpath)
+            outpath = self.get_outfile_path(outname)
 
-        # # validate fragalysis header info
+        else:
+            outname = (
+                sdf_file.removesuffix(".sdf").removesuffix("_combined")
+                + "_fragalysis.sdf"
+            )
+            outpath = self.get_outfile_path(outname)
 
-        # assert method, "method can not be empty"
-        # mrich.var("method", method)
+        mrich.var("outpath", outpath)
 
-        # if not ref_url:
-        #     ref_url = self.fragalysis_export_ref_url
+        poses.to_fragalysis(
+            str(outpath.resolve()),
+            ref_url=ref_url,
+            method=method,
+            submitter_name=submitter_name,
+            submitter_institution=submitter_institution,
+            submitter_email=submitter_email,
+            generate_pdbs=generate_pdbs,
+            name_col="id",
+        )
 
-        # mrich.var("ref_url", ref_url)
+        poses.add_tag("BulkDock Fragalysis export")
 
-        # if not submitter_name:
-        #     submitter_name = self.fragalysis_export_submitter_name
-
-        # mrich.var("submitter_name", submitter_name)
-
-        # if not submitter_institution:
-        #     submitter_institution = self.fragalysis_export_submitter_institution
-
-        # mrich.var("submitter_institution", submitter_institution)
-
-        # if not submitter_email:
-        #     submitter_email = self.fragalysis_export_submitter_email
-
-        # mrich.var("submitter_email", submitter_email)
-
-        # # get the animal
-
-        # animal = self.get_animal(target=target)
-
-        # if not animal:
-        #     return
-
-        # # get pose IDs from SDF file
-
-        # import subprocess
-
-        # command = f'grep "RDKit          3D" -B1 {inpath.resolve()} --no-group-separator | grep -v "RDKit"'
-
-        # process = subprocess.run([command], shell=True, stdout=subprocess.PIPE)
-
-        # pose_ids = set(int(i.strip()) for i in process.stdout.decode().split("\n") if i)
-
-        # mrich.debug("pose_ids=", pose_ids)
-
-        # mrich.var("#pose_ids", len(pose_ids))
-
-        # poses = animal.poses[pose_ids]
-
-        # mrich.var("unfiltered poses", poses)
-
-        # if max_energy_score or max_distance_score or require_outcome:
-
-        #     new_pose_ids = set()
-
-        #     for i, pose in mrich.track(
-        #         enumerate(poses), prefix="Filtering poses", total=len(poses)
-        #     ):
-
-        #         mrich.set_progress_field("progress", f"{i+1}/{len(poses)}")
-        #         mrich.set_progress_field("ok", len(new_pose_ids))
-
-        #         if max_energy_score and pose.energy_score > max_energy_score:
-        #             if debug:
-        #                 mrich.debug(
-        #                     f"Filtered out {pose} due to {pose.energy_score=:.3f} > {max_energy_score}:"
-        #                 )
-        #             continue
-
-        #         if max_distance_score and pose.distance_score > max_distance_score:
-        #             if debug:
-        #                 mrich.debug(
-        #                     f"Filtered out {pose} due to {pose.distance_score=:.3f} > {max_distance_score}:"
-        #                 )
-        #             continue
-
-        #         outcome = pose.metadata["fragmenstein_outcome"]
-        #         if isinstance(outcome, list):
-        #             outcome = outcome[0]
-        #         # .removeprefix("['").removesuffix("']")
-
-        #         if require_outcome and outcome != require_outcome:
-        #             if debug:
-        #                 mrich.debug(
-        #                     f"Filtered out {pose} due to fragmenstein_outcome={outcome} != {require_outcome}:"
-        #                 )
-        #             continue
-
-        #         if pose_filter_methods:
-        #             for filter_method in pose_filter_methods:
-        #                 func = getattr(pose, filter_method)
-        #                 passed = func(debug=debug)
-        #                 if not passed:
-        #                     if debug:
-        #                         mrich.debug(
-        #                             f"Filtered out {pose} due to {filter_method}:"
-        #                         )
-        #                     continue
-
-        #         mrich.success(pose, "OK")
-
-        #         new_pose_ids.add(pose.id)
-
-        #     if not new_pose_ids:
-        #         mrich.error("No poses left after applying filters")
-        #         return None
-
-        #     poses = animal.poses[new_pose_ids]
-
-        # mrich.var("filtered poses", poses)
-
-        # if output:
-        #     if not output.endswith(".sdf"):
-        #         output = f"{output}.sdf"
-        #     outpath = self.get_outfile_path(output)
-
-        # elif generate_pdbs:
-        #     outname = (
-        #         sdf_file.removesuffix(".sdf").removesuffix("_combined")
-        #         + "_fragalysis_wPDBs.sdf"
-        #     )
-
-        #     outpath = self.get_outfile_path(outname)
-
-        # else:
-        #     outname = (
-        #         sdf_file.removesuffix(".sdf").removesuffix("_combined")
-        #         + "_fragalysis.sdf"
-        #     )
-        #     outpath = self.get_outfile_path(outname)
-
-        # mrich.var("outpath", outpath)
-
-        # poses.to_fragalysis(
-        #     str(outpath.resolve()),
-        #     ref_url=ref_url,
-        #     method=method,
-        #     submitter_name=submitter_name,
-        #     submitter_institution=submitter_institution,
-        #     submitter_email=submitter_email,
-        #     generate_pdbs=generate_pdbs,
-        #     name_col="id",
-        # )
-
-        # poses.add_tag("BulkDock Fragalysis export")
-
-        # if generate_pdbs:
-        #     mrich.success(f"Created Fragalysis-compatible SDF and complex PDBs")
-        # else:
-        #     mrich.success(f"Created Fragalysis-compatible SDF")
+        if generate_pdbs:
+            mrich.success(f"Created Fragalysis-compatible SDF and complex PDBs")
+        else:
+            mrich.success(f"Created Fragalysis-compatible SDF")
 
     ### CONFIG
 
