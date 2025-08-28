@@ -615,6 +615,7 @@ class BulkDock:
             generate_pdbs=generate_pdbs,
             name_col="id",
             metadata=metadata,
+            extra_cols={"placement_batch":["BulkDock placement batch"]+[tag]*len(poses)}
         )
 
         poses.add_tag("BulkDock Fragalysis export")
