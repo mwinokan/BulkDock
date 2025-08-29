@@ -480,6 +480,8 @@ class BulkDock:
         tag: str,
         best_by_compound: bool = False,
         metadata: bool = False,
+        tags: bool = False,
+        subsites: bool = False,
         submitter_name: str | None = None,
         submitter_institution: str | None = None,
         submitter_email: str | None = None,
@@ -615,6 +617,8 @@ class BulkDock:
             generate_pdbs=generate_pdbs,
             name_col="id",
             metadata=metadata,
+            tags=tags,
+            subsites=subsites,
             extra_cols={"placement_batch":["BulkDock placement batch"]+[tag]*len(poses)}
         )
 

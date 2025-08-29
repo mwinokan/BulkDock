@@ -28,6 +28,8 @@ def export(
     tag: str,
     best_by_compound: bool = False,
     metadata: bool = False,
+    subsites: bool = True,
+    tags: bool = True,
     generate_pdbs: bool = False,
     submitter_name: str = None,
     submitter_institution: str = None,
@@ -60,6 +62,8 @@ def export(
         pose_filter_methods=pose_filter_methods,
         output=output,
         metadata=metadata,
+        tags=tags,
+        subsites=subsites,
     )
 
 
