@@ -117,6 +117,7 @@ def fragmenstein_place(
         mol.SetProp("_Name", name)
         mol.SetProp("smiles", smiles)
         mol.SetProp("orig_smiles", orig_smiles)
+        mol.SetProp("protein_path", protein_path)
         mol.SetProp("inchikey", inchikey)
         mol.SetProp("target_id", str(1))
         mol.SetProp("reference_id", str(reference.id))
@@ -129,6 +130,7 @@ def fragmenstein_place(
         mol.SetProp("fragmenstein_outcome", str(result.get("outcome", "N/A")))
         mol.SetProp("fragmenstein_mode", str(result.get("mode", "N/A")))
         mol.SetProp("fragmenstein_error", str(result.get("error", "N/A")))
+       
 
         writer.write(mol)
 
